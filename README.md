@@ -12,6 +12,32 @@ Pruebas actuales (`src/features/modules.feature`): desde la home se pulsa la tar
 | TC-MOD-04 | Resumen imputaciones |
 | TC-MOD-05 | Resumen gastos |
 | TC-MOD-06 | Resumen pendientes |
+| TC-MOD-07 | Resumen horas |
+| TC-MOD-08 | Edición horas |
+| TC-MOD-09 | Resumen gastos (albaranes) |
+| TC-MOD-10 | Edición gastos |
+| TC-MOD-11 | Home de la intranet (SAP) |
+| TC-MOD-12 | Listado de viajes (SAP) |
+| TC-MOD-13 | Documentos (SAP) |
+| TC-MOD-14 | CMS (SharePoint) |
+| TC-MOD-15 | Homologación de proveedores (SharePoint) |
+| TC-MOD-16 | Documentos generales |
+| TC-MOD-17 | Documentos mi área personal |
+| TC-MOD-18 | Documentos mi área personal managers |
+| TC-MOD-19 | Normativas pendientes de aceptar |
+| TC-MOD-20 | Resumen proyectos |
+| TC-MOD-21 | Resumen subproyectos |
+| TC-MOD-22 | Resumen tareas |
+| TC-MOD-23 | Histórico normativas |
+| TC-MOD-24 | Permisos usuario |
+| TC-MOD-25 | Roles y accesos |
+| TC-MOD-26 | Roles y accesos multiusuario |
+| TC-MOD-27 | Asignaciones categoría |
+| TC-MOD-28 | Gestión documental |
+| TC-MOD-29 | Gestión notificaciones |
+| TC-MOD-30 | Notificaciones enviadas |
+| TC-MOD-31 | Resumen de proyectos (GEP) |
+| TC-MOD-32 | Categorías |
 
 ## Cómo ejecutar las pruebas (resumen)
 
