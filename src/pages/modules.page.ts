@@ -5,6 +5,8 @@ export interface ExpectedElement {
   /** Selector CSS; con `text`, el elemento debe además contener ese texto. */
   selector: string;
   text?: string;
+  /** Índice (0-based) de la pestaña `p-tab` que hay que abrir antes de buscar el elemento. */
+  tab?: number;
 }
 
 export interface ModuleSpec {
@@ -683,14 +685,15 @@ export const MODULES: Record<string, ModuleSpec> = {
       { name: 'filtro "no asignadas"', selector: '#notAssigned' },
       { name: 'filtro "División"', selector: '#autocomplete-divisionid-0' },
       { name: 'filtro "Categoría"', selector: '#category-0' },
-      { name: 'campo "Usuario"', selector: '#autocomplete-userid-0' },
-      { name: 'campo "Categoría" a asignar', selector: '#autocomplete-gepcategoryid-0' },
-      { name: 'botón de guardar asignación', selector: '#dm-user-category-save-btn' },
       ...['División > Categoría', 'Descripción', 'Asignado', 'Precio €'].map((h) => ({
         name: `columna "${h}"`,
         selector: 'app-dm-categories table thead th',
         text: h,
       })),
+      // Segunda pestaña: sus elementos solo son visibles al abrirla.
+      { name: 'campo "Usuario"', selector: '#autocomplete-userid-0', tab: 1 },
+      { name: 'campo "Categoría" a asignar', selector: '#autocomplete-gepcategoryid-0', tab: 1 },
+      { name: 'botón de guardar asignación', selector: '#dm-user-category-save-btn', tab: 1 },
     ],
   },
   'category-assignments': {
@@ -788,6 +791,12 @@ export class ModulesPage {
   async missingElements(spec: ModuleSpec, timeout = 15_000): Promise<string[]> {
     const missing: string[] = [];
     for (const el of spec.elements) {
+      if (el.tab !== undefined) {
+        const tab = this.page.locator('p-tab').nth(el.tab);
+        if ((await tab.getAttribute('aria-selected').catch(() => null)) !== 'true') {
+          await tab.click({ timeout }).catch(() => undefined);
+        }
+      }
       let locator = this.page.locator(el.selector);
       if (el.text) locator = locator.filter({ hasText: el.text });
       const ok = await locator.first().waitFor({ state: 'visible', timeout }).then(() => true).catch(() => false);
