@@ -1,0 +1,9 @@
+node_modules/
+dist/
+# Sesión autenticada (perfil de Chrome) y salida cruda de ejecución: locales, nunca se versionan
+.auth/
+.raw/
+reports/
+# Valores locales/secretos. .env.dev/.env.pre/.env.pro (solo URLs) SÍ se versionan.
+.env
+.env.local

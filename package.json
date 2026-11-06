@@ -1,0 +1,33 @@
+{
+  "name": "intranet-playwright-tests",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pruebas puntuales de la Intranet (Playwright + Cucumber + TypeScript). Ejecutables en local contra dev / pre / pro.",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/run.mjs",
+    "test:dev": "node scripts/run.mjs --env dev",
+    "test:pre": "node scripts/run.mjs --env pre",
+    "test:pro": "node scripts/run.mjs --env pro",
+    "test:smoke:dev": "node scripts/run.mjs --env dev --tags @smoke",
+    "test:smoke:pre": "node scripts/run.mjs --env pre --tags @smoke",
+    "test:smoke:pro": "node scripts/run.mjs --env pro --tags @smoke",
+    "auth:save": "node scripts/auth.mjs",
+    "auth:save:dev": "node scripts/auth.mjs --env dev",
+    "auth:save:pre": "node scripts/auth.mjs --env pre",
+    "auth:save:pro": "node scripts/auth.mjs --env pro",
+    "report": "node scripts/build-dashboard.mjs"
+  },
+  "dependencies": {
+    "@cucumber/cucumber": "11.1.1",
+    "multiple-cucumber-html-reporter": "^3.9.2",
+    "playwright": "1.62.1",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  },
+  "devDependencies": {
+    "@types/node": "22.9.0",
+    "ts-node": "10.9.2",
+    "typescript": "5.6.3"
+  }
+}

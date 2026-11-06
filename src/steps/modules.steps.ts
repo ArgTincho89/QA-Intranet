@@ -1,0 +1,40 @@
+import { When, Then } from '@cucumber/cucumber';
+import * as assert from 'assert';
+import { CustomWorld } from '../support/world';
+import { PageMonitor } from '../support/page-monitor';
+import { ModulesPage, moduleSpec } from '../pages/modules.page';
+
+When('hago clic en la tarjeta del módulo {string}', async function (this: CustomWorld, key: string) {
+  // El monitor arranca justo antes del clic: solo cuenta lo que genera el módulo, no la home.
+  this.monitor?.stop();
+  this.monitor = new PageMonitor(this.page).start();
+  await new ModulesPage(this.page).openFromHome(moduleSpec(key));
+});
+
+Then('navego a la URL del módulo {string}', async function (this: CustomWorld, key: string) {
+  const spec = moduleSpec(key);
+  await new ModulesPage(this.page).waitForPath(spec);
+  const url = new URL(this.page.url());
+  assert.strictEqual(url.origin, new URL(this.config.baseUrl).origin, 'El origen de la URL no coincide con el entorno');
+  assert.ok([spec.path, `${spec.path}/`].includes(url.pathname), `Ruta esperada ${spec.path}, actual ${url.pathname}`);
+});
+
+Then('todos los endpoints del módulo responden 200', async function (this: CustomWorld) {
+  assert.ok(this.monitor, 'El monitor no está activo: falta el paso de clic en la tarjeta');
+  // Deja terminar las llamadas que el módulo lanza tras renderizar.
+  await this.page.waitForLoadState('networkidle').catch(() => {});
+  const problems = this.monitor.endpointProblems;
+  this.attach(`Endpoints xhr/fetch observados: ${this.monitor.observedEndpoints}`, 'text/plain');
+  assert.deepStrictEqual(problems, [], `Endpoints con respuesta distinta de 200:\n${problems.join('\n')}`);
+});
+
+Then('no hay errores en la consola', async function (this: CustomWorld) {
+  assert.ok(this.monitor, 'El monitor no está activo: falta el paso de clic en la tarjeta');
+  const problems = this.monitor.consoleProblems;
+  assert.deepStrictEqual(problems, [], `Errores de consola:\n${problems.join('\n')}`);
+});
+
+Then('se renderizan los elementos básicos del módulo {string}', async function (this: CustomWorld, key: string) {
+  const missing = await new ModulesPage(this.page).missingElements(moduleSpec(key));
+  assert.deepStrictEqual(missing, [], `Elementos no encontrados:\n${missing.join('\n')}`);
+});
