@@ -9,6 +9,9 @@ Pruebas actuales (`src/features/modules.feature`): desde la home se pulsa la tar
 | TC-MOD-01 | Registro horario |
 | TC-MOD-02 | Resumen registros |
 | TC-MOD-03 | Imputación horas |
+| TC-MOD-04 | Resumen imputaciones |
+| TC-MOD-05 | Resumen gastos |
+| TC-MOD-06 | Resumen pendientes |
 
 ## Cómo ejecutar las pruebas (resumen)
 

@@ -29,3 +29,30 @@ Característica: Módulos de la Intranet
     Y se renderizan los elementos básicos del módulo "imputation-hours"
     Y todos los endpoints del módulo responden 200
     Y no hay errores en la consola
+
+  @smoke
+  Escenario: TC-MOD-04 Resumen imputaciones
+    Dado que accedo a la home de la intranet
+    Cuando hago clic en la tarjeta del módulo "imputation-summary"
+    Entonces navego a la URL del módulo "imputation-summary"
+    Y se renderizan los elementos básicos del módulo "imputation-summary"
+    Y todos los endpoints del módulo responden 200
+    Y no hay errores en la consola
+
+  @smoke
+  Escenario: TC-MOD-05 Resumen gastos
+    Dado que accedo a la home de la intranet
+    Cuando hago clic en la tarjeta del módulo "expense-summary"
+    Entonces navego a la URL del módulo "expense-summary"
+    Y se renderizan los elementos básicos del módulo "expense-summary"
+    Y todos los endpoints del módulo responden 200
+    Y no hay errores en la consola
+
+  @smoke
+  Escenario: TC-MOD-06 Resumen pendientes
+    Dado que accedo a la home de la intranet
+    Cuando hago clic en la tarjeta del módulo "pending-rapports-summary"
+    Entonces navego a la URL del módulo "pending-rapports-summary"
+    Y se renderizan los elementos básicos del módulo "pending-rapports-summary"
+    Y todos los endpoints del módulo responden 200
+    Y no hay errores en la consola
