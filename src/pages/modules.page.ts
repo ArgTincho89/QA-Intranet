@@ -349,9 +349,11 @@ export const MODULES: Record<string, ModuleSpec> = {
     elements: [
       { name: 'título "Documentos"', selector: 'app-documents h3', text: 'Documentos' },
       { name: 'contenedor de documentos', selector: 'app-document-wrapper .document-wrapper' },
-      { name: 'árbol de carpetas', selector: 'app-document-wrapper p-tree' },
-      // El nombre de las carpetas depende de los datos del entorno: solo se exige que haya al menos una.
-      { name: 'al menos una carpeta en el árbol', selector: 'app-document-wrapper p-tree li.folder.p-tree-node' },
+      // Con datos: árbol con al menos una carpeta. Sin datos: mensaje "No se han encontrado resultados". Cualquiera de los dos es válido.
+      {
+        name: 'árbol con carpetas o mensaje "No se han encontrado resultados"',
+        selector: 'app-document-wrapper p-tree li.folder.p-tree-node, app-document-wrapper .document-wrapper-view-not-found h3',
+      },
     ],
   },
   'documents-personal': {
@@ -361,9 +363,11 @@ export const MODULES: Record<string, ModuleSpec> = {
     elements: [
       { name: 'título "Documentos mi área personal"', selector: 'app-documents h3', text: 'Documentos mi área personal' },
       { name: 'contenedor de documentos', selector: 'app-document-wrapper .document-wrapper' },
-      { name: 'árbol de carpetas', selector: 'app-document-wrapper p-tree' },
-      // El nombre de las carpetas depende de los datos del usuario: solo se exige que haya al menos una.
-      { name: 'al menos una carpeta en el árbol', selector: 'app-document-wrapper p-tree li.folder.p-tree-node' },
+      // Con datos: árbol con al menos una carpeta. Sin datos: mensaje "No se han encontrado resultados". Cualquiera de los dos es válido.
+      {
+        name: 'árbol con carpetas o mensaje "No se han encontrado resultados"',
+        selector: 'app-document-wrapper p-tree li.folder.p-tree-node, app-document-wrapper .document-wrapper-view-not-found h3',
+      },
     ],
   },
   'documents-manager': {
@@ -373,9 +377,11 @@ export const MODULES: Record<string, ModuleSpec> = {
     elements: [
       { name: 'título "Documentos mi área personal managers"', selector: 'app-documents h3', text: 'Documentos mi área personal managers' },
       { name: 'contenedor de documentos', selector: 'app-document-wrapper .document-wrapper' },
-      { name: 'árbol de carpetas', selector: 'app-document-wrapper p-tree' },
-      // El nombre de las carpetas depende de los datos del usuario: solo se exige que haya al menos una.
-      { name: 'al menos una carpeta en el árbol', selector: 'app-document-wrapper p-tree li.folder.p-tree-node' },
+      // Con datos: árbol con al menos una carpeta. Sin datos: mensaje "No se han encontrado resultados". Cualquiera de los dos es válido.
+      {
+        name: 'árbol con carpetas o mensaje "No se han encontrado resultados"',
+        selector: 'app-document-wrapper p-tree li.folder.p-tree-node, app-document-wrapper .document-wrapper-view-not-found h3',
+      },
     ],
   },
   normatives: {
