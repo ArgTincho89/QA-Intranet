@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Punto de entrada único: npm run test:dev | test:pre | test:pro
-//   node scripts/run.mjs --env dev [--tags "@smoke"] [--name "regex"] [--profile default|smoke]
+//   node scripts/run.mjs --env dev [--tags "@smoke"] [--name "regex"] [--profile default|smoke] [--headed|--headless]
 // También vale `npm test -- --pre`. Siempre genera el dashboard, pasen o fallen los tests.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -8,6 +8,13 @@ import path from 'node:path';
 import { arg, prepareEnvironment, projectRoot } from './env.mjs';
 
 const envName = prepareEnvironment();
+// --headless / --headed pisan HEADLESS del .env; sin flag se mantiene el valor de .env (por defecto, con ventana).
+if (process.argv.includes('--headless') && process.argv.includes('--headed')) {
+  console.error('[run] Usa --headless o --headed, no ambos.');
+  process.exit(2);
+}
+if (process.argv.includes('--headless')) process.env.HEADLESS = '1';
+if (process.argv.includes('--headed')) process.env.HEADLESS = '';
 const tags = arg('tags');
 const name = arg('name');
 const profile = arg('profile', 'default');
@@ -64,7 +71,8 @@ function run(args) {
   return result.status ?? 1;
 }
 
-console.log(`\n[run] Entorno: ${envName.toUpperCase()}  |  URL: ${process.env.BASE_URL}\n`);
+const headlessOn = /^(1|true)$/i.test(process.env.HEADLESS || '');
+console.log(`\n[run] Entorno: ${envName.toUpperCase()}  |  URL: ${process.env.BASE_URL}  |  Modo: ${headlessOn ? 'headless' : 'headed'}\n`);
 const cucumberArgs = [cucumberBin, '--config', 'cucumber.js', '--profile', profile];
 if (tags) cucumberArgs.push('--tags', tags);
 if (name) cucumberArgs.push('--name', name);

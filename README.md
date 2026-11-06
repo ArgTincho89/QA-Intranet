@@ -68,6 +68,7 @@ Al terminar, la terminal muestra la ruta del reporte HTML (`reports/<fecha>/<ent
 | Solo `@smoke` | `npm run test:smoke:dev` (o `:pre`, `:pro`) |
 | Por flag | `npm test -- --pre` (o `--dev`, `--pro`, `--env pre`) |
 | Filtrar | `npm run test:dev -- --tags "@smoke"` · `npm run test:dev -- --name "TC-MOD-01"` |
+| Modo del navegador | `npm run test:dev` (headed, por defecto) · `npm run test:dev -- --headless` · `npm run test:dev -- --headed` |
 | Regenerar dashboard | `npm run report -- --env dev` |
 
 Códigos de salida: `0` todo pasó · `1` hubo fallos · `2` no se pudo ejecutar (falta URL o sesión).
@@ -104,4 +105,4 @@ Añadir una prueba: nuevo `.feature` en `src/features/` + steps en `src/steps/` 
 - **Añadir un módulo**: entrada en `MODULES` de `src/pages/modules.page.ts` + escenario `TC-MOD-NN` en `modules.feature`.
 
 ## Notas sobre Cloudflare
-Funciona porque se combinan: perfil de Chrome persistente por entorno, `playwright-extra` + stealth, `channel: 'chrome'` y navegador **con ventana**. No lo ejecutes en headless (`HEADLESS=1`): Cloudflare suele bloquearlo. Un aviso de Chrome sobre `--disable-blink-features` es inofensivo.
+Funciona porque se combinan: perfil de Chrome persistente por entorno, `playwright-extra` + stealth, `channel: 'chrome'` y navegador **con ventana**. Evita `--headless` (o `HEADLESS=1`): Cloudflare suele bloquearlo. Un aviso de Chrome sobre `--disable-blink-features` es inofensivo.
