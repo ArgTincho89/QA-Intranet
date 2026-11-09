@@ -87,9 +87,26 @@ After(async function (this: CustomWorld, { pickle, result }: ITestCaseHookParame
   }
 });
 
+// Cerrar Chrome puede colgarse (pestañas externas, beforeunload...). Si el AfterAll falla o expira,
+// Cucumber aborta antes de escribir el JSON y no se genera el dashboard: el cierre es best-effort y acotado.
+async function closeWithin(label: string, close: (() => Promise<unknown>) | undefined, ms: number): Promise<void> {
+  if (!close) return;
+  let timer: NodeJS.Timeout | undefined;
+  const timeout = new Promise<void>((resolve) => {
+    timer = setTimeout(() => {
+      console.warn(`[hooks] El cierre de ${label} superó ${ms / 1000}s: se continúa sin esperar.`);
+      resolve();
+    }, ms);
+  });
+  await Promise.race([close().catch(() => {}), timeout]);
+  if (timer) clearTimeout(timer);
+}
+
 AfterAll(async function () {
-  await sharedPage?.close().catch(() => {});
-  await sharedContext?.close().catch(() => {});
+  const page = sharedPage;
+  const context = sharedContext;
+  await closeWithin('la pestaña', page ? () => page.close({ runBeforeUnload: false }) : undefined, 10_000);
+  await closeWithin('el navegador', context ? () => context.close() : undefined, 20_000);
 });
 
 function slug(text: string): string {
