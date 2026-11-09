@@ -796,16 +796,20 @@ export class ModulesPage {
   /** Devuelve los elementos esperados que NO están visibles (espera a cada uno). */
   async missingElements(spec: ModuleSpec, timeout = 15_000): Promise<string[]> {
     const missing: string[] = [];
+    // Tras el primer elemento ausente la pantalla ya es otra: el resto se comprueba con una espera corta
+    // (evita 9 × 15 s cuando, p. ej., SAP no muestra el login). Los elementos ausentes se siguen reportando todos.
+    const FAST_FAIL_TIMEOUT = 2_000;
     for (const el of spec.elements) {
+      const elTimeout = missing.length > 0 ? Math.min(timeout, FAST_FAIL_TIMEOUT) : timeout;
       if (el.tab !== undefined) {
         const tab = this.page.locator('p-tab').nth(el.tab);
-        if ((await tab.getAttribute('aria-selected').catch(() => null)) !== 'true') {
-          await tab.click({ timeout }).catch(() => undefined);
+        if ((await tab.getAttribute('aria-selected', { timeout: elTimeout }).catch(() => null)) !== 'true') {
+          await tab.click({ timeout: elTimeout }).catch(() => undefined);
         }
       }
       let locator = this.page.locator(el.selector);
       if (el.text) locator = locator.filter({ hasText: el.text });
-      const ok = await locator.first().waitFor({ state: 'visible', timeout }).then(() => true).catch(() => false);
+      const ok = await locator.first().waitFor({ state: 'visible', timeout: elTimeout }).then(() => true).catch(() => false);
       if (!ok) missing.push(`${el.name} (${el.selector}${el.text ? ` con texto "${el.text}"` : ''})`);
     }
     return missing;
