@@ -20,7 +20,9 @@ export class HomePage {
       const response = await this.page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
       if (response?.status() === 403 || (await isForbiddenPage(this.page))) throw new ForbiddenError();
       await waitForCloudflareToClear(this.page);
-      await clickThroughOrgTrustPromptIfPresent(this.page);
+      // Si ya estamos en el host de la app no hace falta esperar 5 s a una pantalla que vive en Microsoft;
+      // si aparece más tarde por una redirección, waitUntilLoaded la atiende.
+      await clickThroughOrgTrustPromptIfPresent(this.page, this.page.url().includes(expectedHost) ? 300 : 5_000);
       if (await isForbiddenPage(this.page)) throw new ForbiddenError();
 
       if (this.page.url().includes(expectedHost)) {
@@ -44,6 +46,9 @@ export class HomePage {
     const deadline = Date.now() + timeout;
     while (Date.now() < deadline) {
       if (await isForbiddenPage(this.page)) throw new ForbiddenError();
+      if (await this.page.locator('#appConfirmTitle').isVisible().catch(() => false)) {
+        await clickThroughOrgTrustPromptIfPresent(this.page, 1_000);
+      }
       const ready = await this.page
         .evaluate(() => {
           const root = document.querySelector('app-root');

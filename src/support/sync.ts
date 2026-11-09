@@ -33,9 +33,9 @@ export async function waitForCloudflareToClear(page: Page, timeout = 45_000): Pr
  * se reutiliza en otras pantallas de Microsoft, así que solo se pulsa si `#appConfirmTitle`
  * (único de esta pantalla) está presente.
  */
-export async function clickThroughOrgTrustPromptIfPresent(page: Page): Promise<void> {
+export async function clickThroughOrgTrustPromptIfPresent(page: Page, timeout = 5_000): Promise<void> {
   const heading = page.locator('#appConfirmTitle');
-  const isPresent = await heading.waitFor({ state: 'visible', timeout: 5_000 }).then(() => true).catch(() => false);
+  const isPresent = await heading.waitFor({ state: 'visible', timeout }).then(() => true).catch(() => false);
   if (!isPresent) return;
   await page.locator('#idSIButton9').click();
   await heading.waitFor({ state: 'hidden' }).catch(() => {});

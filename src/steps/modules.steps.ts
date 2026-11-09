@@ -41,7 +41,7 @@ Then('navego a la URL del módulo {string}', async function (this: CustomWorld, 
 Then('todos los endpoints del módulo responden 200', async function (this: CustomWorld) {
   assert.ok(this.monitor, 'El monitor no está activo: falta el paso de clic en la tarjeta');
   // Deja terminar las llamadas que el módulo lanza tras renderizar.
-  await this.page.waitForLoadState('networkidle').catch(() => {});
+  await this.page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
   const problems = this.monitor.endpointProblems;
   this.attach(`Endpoints xhr/fetch observados: ${this.monitor.observedEndpoints}`, 'text/plain');
   if (warnOnly(this, 'Endpoints con respuesta distinta de 200', problems)) return;

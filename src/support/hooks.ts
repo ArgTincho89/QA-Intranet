@@ -57,7 +57,8 @@ Before(async function (this: CustomWorld) {
     sharedPage.setDefaultTimeout(PLAYWRIGHT_DEFAULT_TIMEOUT_MS);
   }
   this.page = sharedPage;
-  await clickThroughOrgTrustPromptIfPresent(this.page);
+  // La pestaña ya está en la app: solo un vistazo rápido (la pantalla de confianza vive en login.microsoftonline.com).
+  await clickThroughOrgTrustPromptIfPresent(this.page, 500);
 });
 
 After(async function (this: CustomWorld, { pickle, result }: ITestCaseHookParameter) {
