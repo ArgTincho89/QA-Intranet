@@ -39,6 +39,24 @@ Pruebas actuales (`src/features/modules.feature`): desde la home se pulsa la tar
 | TC-MOD-31 | Resumen de proyectos (GEP) |
 | TC-MOD-32 | Categorías |
 
+### Feature "Imputación horas" (`src/features/imputacion-horas.feature`)
+
+22 casos (2 por subsección) tomados de la suite de Azure DevOps "Imputation hours" (ID 531), en el orden del documento. Ejecutar con `npm run test:dev -- --name "TC-IH"`. Los casos con `@datos-prueba` crean datos el 14/07/2026 y los limpian. Los pasos no automatizables se registran como aviso, no como verificados.
+
+| ID | Sección | Caso |
+|---|---|---|
+| TC-IH-01 / 02 | Calendario | UI / Funcionalidad |
+| TC-IH-03 / 04 | Agregar imputación | Funcionalidad / UI |
+| TC-IH-05 / 06 | Editar imputación | Funcionalidad / UI |
+| TC-IH-07 / 08 | Eliminar imputación | Funcionalidad / UI |
+| TC-IH-09 / 10 | Agregar gasto | Funcionalidad / UI |
+| TC-IH-11 / 12 | Página de detalle | UI / Funcionalidad |
+| TC-IH-13 / 14 | Resumen | UI / Funcionalidad |
+| TC-IH-15 / 16 | Copiar día | UI / Funcionalidad |
+| TC-IH-17 / 18 | Eliminar día | UI / Funcionalidad |
+| TC-IH-19 / 20 | Paginación | UI / Funcionalidad |
+| TC-IH-21 / 22 | Ordenamiento | Funcionalidad / UI |
+
 ## Cómo ejecutar las pruebas (resumen)
 
 ```bash
