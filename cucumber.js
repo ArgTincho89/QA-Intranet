@@ -18,4 +18,11 @@ const COMMON = {
 module.exports = {
   default: { ...COMMON, tags: 'not @wip' },
   smoke: { ...COMMON, tags: '@smoke and not @wip' },
+  // Orden fijo para la ejecución completa: primero el recorrido de los 32 módulos (rápido, ~1-2 min),
+  // luego Imputación horas. `order: 'defined'` (por defecto en Cucumber) respeta este orden de `paths`.
+  suite: {
+    ...COMMON,
+    paths: ['src/features/modules.feature', 'src/features/imputacion-horas.feature'],
+    tags: 'not @wip',
+  },
 };
