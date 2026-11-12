@@ -12,7 +12,7 @@ const COMMON = {
   formatOptions: { snippetInterface: 'async-await' },
   // Un reintento filtra ruido transitorio (lentitud del entorno) sin ocultar fallos reales.
   retry: Number(process.env.RETRY || 1),
-  format: ['progress-bar', `json:${path.join(RAW_DIR, 'cucumber.json')}`],
+  format: ['./src/support/live-progress-formatter.ts', `json:${path.join(RAW_DIR, 'cucumber.json')}`],
 };
 
 module.exports = {

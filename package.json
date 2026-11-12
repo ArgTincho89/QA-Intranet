@@ -2,6 +2,7 @@
   "name": "intranet-playwright-tests",
   "version": "0.1.0",
   "private": true,
+  "type": "commonjs",
   "description": "Pruebas puntuales de la Intranet (Playwright + Cucumber + TypeScript). Ejecutables en local contra dev / pre / pro.",
   "scripts": {
     "typecheck": "tsc --noEmit",

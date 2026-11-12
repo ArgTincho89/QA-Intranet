@@ -186,9 +186,8 @@ When('creo tres imputaciones de prueba con distintas descripciones y horas', asy
 });
 
 Then('se registra como no automatizable: {string}', async function (this: CustomWorld, motivo: string) {
-  const msg = `⚠ PASO NO AUTOMATIZABLE (no se da por verificado): ${motivo}`;
-  this.attach(msg, 'text/plain');
-  console.warn(`\n${msg}\n`);
+  // Queda en el reporte HTML (adjunto del paso); no se imprime en consola para no ensuciar la salida en vivo.
+  this.attach(`⚠ PASO NO AUTOMATIZABLE (no se da por verificado): ${motivo}`, 'text/plain');
 });
 
 Then('la interfaz debe mostrarse correctamente', async function (this: CustomWorld) {
