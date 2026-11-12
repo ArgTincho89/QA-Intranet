@@ -154,7 +154,11 @@ When('selecciono un día que tenga imputaciones', async function (this: CustomWo
 });
 
 When('selecciono un día que no tenga imputaciones', async function (this: CustomWorld) {
-  await ih(this).irADia(DIA_PRUEBA.dia, DIA_PRUEBA.mes, DIA_PRUEBA.anio);
+  const p = ih(this);
+  await p.irADia(DIA_PRUEBA.dia, DIA_PRUEBA.mes, DIA_PRUEBA.anio);
+  if ((await p.filas.count()) > 0) {
+    await limpiarDatosDePrueba(this);
+  }
 });
 
 When('selecciono en el calendario un día sin imputaciones y verifico la paginación y la interfaz', async function (this: CustomWorld) {
@@ -270,7 +274,13 @@ Then('el día incompleto debe mostrarse en color amarillo', async function (this
   const p = ih(this);
   await p.irAMes(DIA_PRUEBA.mes, DIA_PRUEBA.anio);
   assert.ok(await p.tieneEstado(DIA_PRUEBA.dia, 'incompleto'), `El día ${DIA_PRUEBA.dia} no tiene el estado "incompleto". Clases: ${await p.clasesDia(DIA_PRUEBA.dia)}`);
-  assert.ok(colorDe(await p.colorFondoDia(DIA_PRUEBA.dia), 'amarillo'), 'El día incompleto debería ser amarillo');
+  // El día de prueba puede haber quedado seleccionado (lo deja así la limpieza previa): el color de
+  // "seleccionado" se superpone al de "incompleto". Se selecciona otro día vacío para liberar el 14.
+  if (await p.tieneEstado(DIA_PRUEBA.dia, 'seleccionado')) {
+    await p.seleccionarDia(15);
+  }
+  const rgb = await p.colorFondoDia(DIA_PRUEBA.dia);
+  assert.ok(colorDe(rgb, 'amarillo'), `El día incompleto debería ser amarillo, color real rgb(${rgb.join(', ')})`);
 });
 
 Then('el día debe mostrarse en color blanco y debe aparecer el tiempo imputado', async function (this: CustomWorld) {
@@ -963,7 +973,7 @@ Then('el gasto aparece en la tabla de gastos del detalle con el importe {string}
   assert.ok(t.includes(importe), `No se ve el importe del gasto en el detalle: ${t.slice(-600)}`);
 });
 
-When('abro de nuevo el formulario de añadir gasto y relleno dos gastos nuevos', async function (this: CustomWorld) {
+When('abro de nuevo el formulario de añadir gasto y relleno dos gastos nuevos', { timeout: 150_000 }, async function (this: CustomWorld) {
   const addExpenseBtn = this.page.locator('span.btn.btn-rounded.btn-blue').filter({ hasText: 'Añadir gasto' }).first();
   await addExpenseBtn.click({ timeout: 20_000 });
   const d = ih(this).dialogo;

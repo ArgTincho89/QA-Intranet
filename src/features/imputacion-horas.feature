@@ -27,9 +27,13 @@
 Característica: Imputación horas
 
   # ===================================================== Calendario
+  @datos-prueba
   Escenario: TC-IH-01 Calendario - Calendario UI
     Dado que abro el portal de Seidor Intranet
     Y accedo a Informes → Imputación de horas
+    # El día incompleto de referencia (14/07/2026) debe estar realmente vacío para que el color se
+    # pueda verificar de forma determinista; no se puede dar por hecho que ya lo esté.
+    Y el día de prueba está sin imputaciones
     Cuando verifico la interfaz del calendario
     Entonces la interfaz del calendario debe mostrarse correctamente
     Cuando verifico la interfaz del día actual
@@ -45,6 +49,7 @@ Característica: Imputación horas
     Cuando verifico la interfaz del día seleccionado
     Entonces el día seleccionado debe mostrarse en color azul
 
+  @datos-prueba
   Escenario: TC-IH-02 Calendario - Funcionalidad del calendario
     Dado que abro el portal de Seidor Intranet
     Y accedo a Informes → Imputación de horas
