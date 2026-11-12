@@ -1,289 +1,447 @@
 # language: es
+# Fuente: Azure DevOps, suite "Imputation hours" (plan 529 > suite 531), 22 casos TC-IH-01..22
+# proporcionados por la QA del proyecto. Cada escenario reproduce, en el mismo orden, la acción
+# (Dado/Cuando) y el resultado esperado (Entonces) de cada fila del test case; cuando la fila no
+# tiene resultado esperado ("—") no se añade "Entonces". No se renumeran ni se fusionan pasos salvo
+# que se documente explícitamente por qué (desvíos necesarios y lógicos, nunca arbitrarios).
+#
+# Datos de solo lectura usados como referencia estable: 12/05/2026 (día con imputaciones existentes),
+# 01/05/2026 (festivo), 03/05/2026 (fin de semana). Datos de escritura: 14/07/2026, día laborable sin
+# imputaciones reservado para los escenarios @datos-prueba, que limpian antes y después de ejecutar.
+#
+# Desvíos documentados respecto al texto del test case (necesarios, no hallucinados):
+#  - TC-IH-03/04: el documento dice "modal" de añadir imputación; la UI real (imputation.component)
+#    muestra un formulario embebido en la página al seleccionar un día, no un modal. Se usa
+#    "formulario" y se da por abierto al seleccionar el día.
+#  - TC-IH-05/06: el documento dice "Resumen de imputaciones" (módulo imputation-summary); esa ruta
+#    devuelve 403 en el entorno de dev con el usuario de pruebas. El modal de edición que se
+#    verifica es el MISMO componente (ModalImputationComponent/app-imputation) que usa esa pantalla,
+#    así que se alcanza editando desde el calendario de Imputación horas, documentado en el escenario.
+#  - TC-IH-19/20/21/22: el documento describe una columna "Fecha" y varias páginas de resultados,
+#    propias de una tabla multi-fecha (igual que la de "Resumen de imputaciones"); la tabla de
+#    Imputación horas está acotada a un solo día y no tiene columna Fecha. Se verifica paginación y
+#    ordenación sobre las columnas y datos que sí existen en esa tabla, y se registra como no
+#    automatizable lo que exige la vista multi-fecha inaccesible en dev.
+
 @imputacion-horas
 Característica: Imputación horas
-  Automatización de los casos de prueba manuales de la QA (Azure DevOps, suite "Imputation hours", ID 531).
-  Se respeta el orden del documento. Los pasos que dependen de datos externos o de otros perfiles
-  se registran como "no automatizable" y no se dan por verificados.
-  Datos de solo lectura: 12/05/2026 (imputación existente), 01/05 (festivo), 03/05 (domingo) y 14/07/2026 (día laborable sin datos).
-  Los casos que crean datos usan el 14/07/2026 y lo limpian antes y después.
-
-  Antecedentes:
-    Dado que accedo a la home de la intranet
-    Cuando hago clic en la tarjeta del módulo "imputation-hours"
-    Entonces la pantalla de imputación de horas está cargada
 
   # ===================================================== Calendario
   Escenario: TC-IH-01 Calendario - Calendario UI
-    Entonces el calendario es visible con cabecera, flechas y días de la semana
-    Y el día actual se muestra en blanco con borde
-    Cuando navego en el calendario a julio de 2026
-    Entonces el día 14 se muestra como "incompleto en amarillo"
-    Cuando navego en el calendario a mayo de 2026
-    Entonces el día 12 se muestra como "completo en blanco"
-    Y el día 12 muestra las horas imputadas en la celda
-    Y el día 1 se muestra como "festivo en azul oscuro"
-    Y el día 3 se muestra como "fin de semana en gris"
-    Cuando selecciono el día 12 de mayo de 2026 en el calendario
-    Entonces el día 12 se muestra como "seleccionado en azul"
-    Y la leyenda del calendario explica los estados de los días
+    Dado que abro el portal de Seidor Intranet
+    Y accedo a Informes → Imputación de horas
+    Cuando verifico la interfaz del calendario
+    Entonces la interfaz del calendario debe mostrarse correctamente
+    Cuando verifico la interfaz del día actual
+    Entonces el día actual debe mostrarse en color blanco con un borde
+    Cuando verifico la interfaz de un día incompleto (sin imputaciones)
+    Entonces el día incompleto debe mostrarse en color amarillo
+    Cuando verifico la interfaz de un día con imputaciones
+    Entonces el día debe mostrarse en color blanco y debe aparecer el tiempo imputado
+    Cuando verifico la interfaz de los días festivos
+    Entonces los días festivos deben mostrarse en azul oscuro
+    Cuando verifico la interfaz de los fines de semana
+    Entonces los fines de semana deben mostrarse en gris
+    Cuando verifico la interfaz del día seleccionado
+    Entonces el día seleccionado debe mostrarse en color azul
 
-  Escenario: TC-IH-02 Calendario - Funcionalidad calendario
-    Entonces el calendario muestra el mes y el año actuales
-    Cuando hago clic en la flecha "izquierda" del calendario
-    Entonces el calendario muestra el mes "previo" al anterior
-    Cuando hago clic en la flecha "derecha" del calendario
-    Entonces el calendario muestra el mes "siguiente" al anterior
-    Cuando hago clic en el año del calendario
-    Entonces se muestra la lista de años y selecciono el 2026
-    Cuando hago clic en el mes del calendario
-    Entonces se muestra la lista de meses y selecciono mayo
-    Cuando selecciono el día 12 de mayo de 2026 en el calendario
-    Entonces la tabla de imputaciones tiene al menos una fila
-    Y el resumen del día coincide con el total de la tabla y el del mes con la suma del calendario
-    Cuando selecciono el día 14 de julio de 2026 en el calendario
-    Entonces la tabla de imputaciones está vacía
-    Y el resumen del día coincide con el total de la tabla y el del mes con la suma del calendario
+  Escenario: TC-IH-02 Calendario - Funcionalidad del calendario
+    Dado que abro el portal de Seidor Intranet
+    Y accedo a Informes → Imputación de horas
+    Y accedo al calendario
+    Cuando verifico el mes y año predeterminados
+    Entonces el calendario debe mostrar el mes y año actuales
+    Cuando verifico el funcionamiento del botón de flecha izquierda
+    Entonces se debe navegar al mes anterior
+    Cuando verifico el funcionamiento del botón de flecha derecha
+    Entonces se debe mostrar el mes siguiente
+    Cuando hago clic en el año
+    Entonces debe mostrarse una lista de años para seleccionar
+    Cuando hago clic en el mes
+    Entonces debe mostrarse una lista de meses para seleccionar
+    Cuando selecciono un día que tenga imputaciones
+    Entonces debe mostrarse la tabla con el detalle de las imputaciones de ese día
+    Cuando verifico el resumen al seleccionar un día con imputaciones
+    Entonces debe mostrarse el resumen del día seleccionado y el resumen del mes actual
+    Cuando selecciono un día que no tenga imputaciones
+    Entonces la tabla de imputaciones debe estar vacía
+    Cuando verifico el resumen al seleccionar un día sin imputaciones
+    Entonces el resumen del día debe mostrar cero y debe mantenerse el resumen del mes actual
 
-  # ===================================================== Agregar imputación
-  # El documento lista primero el caso "Functionality" (ID 1792) y después el "UI" (ID 1793).
+  # ===================================================== Añadir imputación
+  # El documento lista primero el caso "Funcionalidad" (ID 1792) y después el "UI" (ID 1793).
   @datos-prueba
-  Escenario: TC-IH-03 Agregar imputación - Funcionalidad agregar imputación
-    Dado el día de prueba está sin imputaciones
-    Cuando selecciono el día de prueba en el calendario
-    Entonces el formulario de añadir imputación muestra la fecha "14/07/2026"
-    Y los campos descripción, referencia interna y horas están deshabilitados sin proyecto
+  Escenario: TC-IH-03 Añadir imputación - Funcionalidad
+    Dado que abro el portal de Seidor Intranet
+    Y accedo a Imputación de horas
+    Y el día de prueba está sin imputaciones
+    Cuando hago clic en el botón Añadir imputación
+    Entonces debe abrirse el formulario de añadir imputación
+    Cuando verifico la fecha en el formulario
+    Entonces debe mostrarse la fecha seleccionada
+    Cuando verifico el nombre de usuario en el formulario
+    Entonces debe mostrarse el nombre del usuario para el que se está añadiendo la imputación
+    Cuando verifico el campo Creador cuando el usuario registra su propia imputación
+    Entonces el creador debe ser el propio usuario
+    Y se registra como no automatizable: "creador 'reportero' cuando un administrador registra la imputación: requiere iniciar sesión con un perfil administrador, no disponible para el usuario de pruebas"
     Cuando despliego la lista de proyectos con la lupa
     Entonces se listan proyectos activos para el usuario
-    Cuando selecciono el proyecto "MM-PruebasQA2"
-    Y selecciono el proyecto "MM-PruebasQA1"
-    Entonces el proyecto seleccionado es "MM-PruebasQA1"
-    Y los campos descripción, referencia interna y horas están habilitados
-    Y los campos subproyecto y tarea están deshabilitados porque el proyecto no los tiene
-    Cuando escribo la descripción "Descripción editable de prueba automatizada"
-    Y escribo la referencia interna "REF-IH-AUTO"
-    Y despliego la lista de situaciones
-    Entonces la lista de situaciones incluye "Teletrabajo" y "En la oficina"
+    Cuando selecciono el proyecto "00_NC_SUBPROJECT" de la lista
+    Entonces el proyecto seleccionado es "00_NC_SUBPROJECT"
+    Y la categoría se asigna según el proyecto seleccionado
+    Cuando despliego la lista de subproyectos con la lupa
+    Entonces se listan los subproyectos disponibles del proyecto seleccionado
+    Cuando selecciono el subproyecto "00_NC_SUBPROJECT_TASK - 02" de la lista
+    Entonces el subproyecto seleccionado es "00_NC_SUBPROJECT_TASK - 02"
+    Cuando despliego la lista de tareas con la lupa
+    Entonces se listan las tareas disponibles del subproyecto seleccionado
+    Cuando selecciono la tarea "TestTask7 - 02" de la lista
+    Entonces la tarea seleccionada es "TestTask7 - 02"
+    Y se carga la descripción predeterminada de la tarea seleccionada
+    Cuando edito la descripción a "Descripción editada por la prueba automatizada"
+    Entonces la descripción editada se mantiene en el campo
+    Cuando escribo la referencia interna "REF-IH-AUTO"
+    Entonces la referencia interna queda disponible en el campo
+    Cuando despliego la lista de situaciones
+    Entonces se muestra la lista de situaciones disponibles
     Cuando selecciono la situación "Teletrabajo"
     Entonces la situación seleccionada es "Teletrabajo"
     Cuando escribo las horas "0130" en el formulario
-    Entonces el campo de horas muestra "01:30"
+    Entonces las horas se añaden en formato 00:00 y el campo muestra "01:30"
     Cuando escribo las horas "2359" en el formulario
-    Entonces el campo de horas muestra "23:59"
-    Cuando escribo las horas "2400" en el formulario
-    Entonces el campo de horas queda vacío por ser un valor inválido
-    Cuando escribo las horas "2599" en el formulario
-    Entonces el campo de horas queda vacío por ser un valor inválido
+    Entonces el máximo permitido para un día, "23:59", se acepta en el campo
+    Cuando intento escribir las horas "2400" en el formulario
+    Entonces el campo de horas no admite un valor fuera de 00:00-23:59
     Cuando escribo las horas "0130" en el formulario
-    Y pulso el botón guardar del formulario
-    Entonces la tabla muestra una imputación con proyecto "MM-PruebasQA1", descripción "Descripción editable de prueba automatizada", horas "01:30" y situación "Teletrabajo"
-    Y el creador de la imputación es "Usuario"
-    Y el día de prueba muestra "01:30" en el calendario
-    Y se registra como no automatizable: "creador 'reportero' (requiere un perfil administrador), proyectos bloqueados, tareas caducadas, caracteres especiales en datos SAP y fechas de alta/baja del usuario en la compañía"
+    Y hago clic en el botón Guardar
+    Entonces la imputación se guarda correctamente
+    Cuando abro un nuevo formulario de añadir imputación y selecciono el proyecto "00_NC_EMPTY" de la lista
+    Entonces el proyecto seleccionado es "00_NC_EMPTY"
+    Y se registra como no automatizable: "este cambio de proyecto demuestra que el proyecto es editable antes de guardar; el documento sitúa esta verificación después del guardado del paso anterior, por lo que no se guarda esta segunda selección"
+    Cuando verifico si se puede añadir una imputación a un proyecto bloqueado
+    Entonces se registra como no automatizable: "no se ha localizado en el entorno de pruebas ningún proyecto con el indicador 'bloqueado' (isActive=false); la validación existe en el código (projectBlocked) pero no hay datos para ejercitarla"
+    Cuando selecciono el proyecto "00_T_TASK" de la lista
+    Entonces la tarea de ese proyecto está caducada y no aparece en la lista de tareas disponibles, por lo que no es posible imputarle horas
+    Cuando escribo en el buscador de proyectos los caracteres especiales "Ñ&/%"
+    Entonces el campo de búsqueda de proyecto permite introducir caracteres especiales para buscar
+    Y se registra como no automatizable: "el documento menciona el campo 'División' de datos SAP, que no existe en este formulario; se verifica el campo de búsqueda SAP equivalente que sí existe aquí (Proyecto)"
+    Y se registra como no automatizable: "fechas de alta y baja del usuario en la compañía: requieren modificar datos maestros del usuario de pruebas, fuera del alcance de una prueba de UI"
 
-  Escenario: TC-IH-04 Agregar imputación - Agregar imputación UI
-    Cuando selecciono el día 12 de mayo de 2026 en el calendario
-    Entonces el formulario muestra título, campos y botones esperados
-    Y el menú más acciones ofrece "Copiar día" y "Borrar día"
+  Escenario: TC-IH-04 Añadir imputación - UI
+    Dado que abro el portal de Seidor Intranet
+    Y accedo a Imputación de horas
+    Cuando hago clic en el botón Añadir imputación
+    Entonces debe abrirse el formulario de añadir imputación
+    Cuando verifico la interfaz de la pantalla
+    Entonces la interfaz debe mostrarse correctamente
 
   # ===================================================== Editar imputación
-  # El documento lista primero el caso "Functionality" (ID 1795) y después el "UI" (ID 1796).
+  # El documento lista primero el caso "Funcionalidad" (ID 1795) y después el "UI" (ID 1796).
   @datos-prueba
-  Escenario: TC-IH-05 Editar imputación - Funcionalidad editar imputación
-    Dado el día de prueba está sin imputaciones
-    Cuando selecciono el día de prueba en el calendario
-    Y creo una imputación de prueba con descripción "Imputación para editar" y "01:00" horas
-    Y abro el menú de acciones de la primera imputación
-    Entonces el menú ofrece las opciones "Editar imputación", "Borrar imputación" y "Gastos"
-    Cuando elijo la opción "Editar imputación" del menú de la imputación
-    Entonces se abre el diálogo de edición con la fecha "14/07/2026"
-    Y el diálogo de edición muestra usuario, creador "Usuario" y categoría
-    Cuando cambio en el diálogo de edición el proyecto a "MM-PruebasQA2"
-    Y cambio en el diálogo de edición la descripción a "Imputación editada" y la referencia interna a "REF-EDIT"
-    Y cambio en el diálogo de edición la situación a "En la oficina"
-    Y escribo en el diálogo de edición las horas "2400"
-    Entonces el campo de horas del diálogo de edición queda vacío por ser inválido
+  Escenario: TC-IH-05 Editar imputación - Funcionalidad
+    Dado que abro el portal de Seidor Intranet
+    Y accedo al Resumen de imputaciones
+    Y el día de prueba está sin imputaciones
+    Y creo una imputación de prueba con descripción "Imputación para editar" y horas "01:00"
+    Cuando selecciono en el calendario la fecha de prueba, que tiene imputaciones
+    Entonces debe mostrarse la tabla de imputaciones correspondiente a esa fecha
+    Cuando hago clic en las opciones adicionales de una imputación
+    Entonces deben mostrarse las opciones disponibles
+    Cuando selecciono Editar imputación
+    Entonces debe abrirse el diálogo de edición de imputación
+    Cuando verifico la fecha en el diálogo de edición
+    Entonces debe mostrarse la fecha seleccionada
+    Cuando verifico el nombre de usuario en el diálogo de edición
+    Entonces debe mostrarse el nombre del usuario para el que se registró la imputación
+    Cuando verifico el campo Creador cuando el usuario registra su propia imputación
+    Entonces el creador debe ser el propio usuario
+    Y se registra como no automatizable: "creador 'reportero' cuando un administrador registra la imputación para otro usuario: requiere perfil administrador"
+    Y la categoría se asigna según el proyecto seleccionado
+    Cuando intento editar el proyecto en el diálogo de edición
+    Entonces el proyecto es editable
+    Cuando edito el subproyecto en el diálogo de edición
+    Entonces puede seleccionarse un subproyecto disponible del proyecto seleccionado
+    Cuando edito la tarea en el diálogo de edición
+    Entonces puede seleccionarse una tarea disponible del subproyecto seleccionado
+    Cuando edito la descripción en el diálogo de edición
+    Entonces la descripción es editable
+    Cuando edito la referencia interna en el diálogo de edición
+    Entonces la referencia interna es editable
+    Cuando despliego la lista de situaciones en el diálogo de edición
+    Entonces la lista de situaciones está disponible para su edición
+    Cuando selecciono la situación "En la oficina" en el diálogo de edición
+    Entonces la situación seleccionada es "En la oficina"
     Cuando escribo en el diálogo de edición las horas "0200"
-    Entonces el campo de horas del diálogo de edición muestra "02:00"
-    Cuando guardo el diálogo de edición
-    Entonces la tabla muestra una imputación con proyecto "MM-PruebasQA2", descripción "Imputación editada", horas "02:00" y situación "En la oficina"
-    Y se registra como no automatizable: "gastos conservados tras editar, sincronización con el resumen de gastos, proyectos código 25 y edición de imputaciones creadas por un completer (requieren datos o permisos específicos)"
+    Entonces las horas son editables en formato 00:00 y el campo muestra "02:00"
+    Cuando intento escribir en el diálogo de edición las horas "2400"
+    Entonces el campo de horas no admite un valor fuera de 00:00-23:59
+    Cuando escribo en el diálogo de edición las horas "0200"
+    Y hago clic en el botón Guardar del diálogo de edición
+    Entonces la imputación editada se guarda correctamente
+    Y se registra como no automatizable: "actualización del resumen de gastos tras editar proyecto/subproyecto/tarea: el resumen de gastos vive en el módulo 'Resumen gastos', fuera del alcance de esta imputación"
+    Y se registra como no automatizable: "proyectos con código 25 (imputación cero) combinados con proyectos ordinarios: no se ha localizado en el entorno de pruebas un proyecto de ese tipo"
+    Y se registra como no automatizable: "los gastos no se eliminan al editar los proyectos: requiere repetir TC-IH-09 (añadir gasto) sobre esta misma imputación antes de editarla, y no está comprobado en este escenario"
+    Y se registra como no automatizable: "edición de un informe añadido por el responsable (completer): requiere una imputación creada por otro usuario con rol de responsable, no disponible para el usuario de pruebas"
 
-  Escenario: TC-IH-06 Editar imputación - Editar imputación UI
-    Cuando selecciono el día 12 de mayo de 2026 en el calendario
-    Y abro el menú de acciones de la primera imputación
-    Y elijo la opción "Editar imputación" del menú de la imputación
-    Entonces el diálogo de edición muestra título, campos y botones esperados
-    Cuando cierro el diálogo abierto
+  Escenario: TC-IH-06 Editar imputación - UI
+    Dado que abro el portal de Seidor Intranet
+    Y accedo al Resumen de imputaciones
+    Cuando selecciono en el calendario una fecha que tenga imputaciones
+    Entonces debe mostrarse la lista de imputaciones
+    Cuando hago clic en las opciones adicionales de una imputación
+    Entonces deben mostrarse las opciones disponibles
+    Cuando selecciono la opción Editar imputación
+    Entonces debe abrirse el diálogo de edición de imputación
+    Cuando verifico la interfaz de la pantalla
+    Entonces la interfaz debe mostrarse correctamente
 
   # ===================================================== Eliminar imputación
   @datos-prueba
-  Escenario: TC-IH-07 Eliminar imputación - Funcionalidad eliminar imputación
-    Dado el día de prueba está sin imputaciones
-    Cuando selecciono el día de prueba en el calendario
-    Y creo una imputación de prueba con descripción "Imputación para borrar" y "00:45" horas
-    Entonces la tabla de imputaciones muestra 1 filas
-    Cuando abro el menú de acciones de la primera imputación
-    Y elijo la opción "Borrar imputación" del menú de la imputación
-    Entonces aparece el diálogo de confirmación de borrado con los botones "Cancelar" y "Borrar"
-    Cuando cancelo el borrado en el diálogo de confirmación
-    Entonces la tabla de imputaciones muestra 1 filas
-    Cuando abro el menú de acciones de la primera imputación
-    Y elijo la opción "Borrar imputación" del menú de la imputación
-    Y confirmo el borrado en el diálogo de confirmación
-    Entonces la tabla de imputaciones está vacía
-    Y se registra como no automatizable: "borrado de imputaciones creadas por un completer (requiere permisos extendidos)"
+  Escenario: TC-IH-07 Eliminar imputación - Funcionalidad
+    Dado que abro el portal de Seidor Intranet
+    Y accedo a Imputación de horas
+    Y el día de prueba está sin imputaciones
+    Y creo una imputación de prueba con descripción "Imputación para borrar" y horas "00:45"
+    Cuando selecciono en el calendario la fecha de prueba, que tiene imputaciones
+    Entonces debe mostrarse la tabla de imputaciones correspondiente a esa fecha
+    Cuando hago clic en las opciones adicionales de una imputación
+    Entonces deben mostrarse las opciones disponibles
+    Cuando selecciono la opción Eliminar imputación
+    Entonces debe aparecer una ventana modal solicitando confirmación de la eliminación
+    Cuando verifico el funcionamiento del botón Cancelar de la ventana de confirmación
+    Entonces la ventana modal debe cerrarse sin eliminar la imputación
+    Cuando hago clic en las opciones adicionales de una imputación
+    Y selecciono la opción Eliminar imputación
+    Y verifico el funcionamiento del botón Aceptar en la ventana de confirmación
+    Entonces la imputación debe eliminarse
+    Y se registra como no automatizable: "eliminar una imputación creada por el responsable (completer): requiere una imputación creada por otro usuario con rol de responsable, no disponible para el usuario de pruebas"
 
-  Escenario: TC-IH-08 Eliminar imputación - Eliminar imputación UI
-    Cuando selecciono el día 12 de mayo de 2026 en el calendario
-    Y abro el menú de acciones de la primera imputación
-    Y elijo la opción "Borrar imputación" del menú de la imputación
-    Entonces aparece el diálogo de confirmación de borrado con los botones "Cancelar" y "Borrar"
-    Cuando cancelo el borrado en el diálogo de confirmación
-    Entonces la tabla de imputaciones tiene al menos una fila
+  Escenario: TC-IH-08 Eliminar imputación - UI
+    Dado que abro el portal de Seidor Intranet
+    Y accedo a Imputación de horas
+    Cuando selecciono en el calendario una fecha que tenga imputaciones
+    Entonces debe mostrarse la lista de imputaciones
+    Cuando hago clic en las opciones adicionales de una imputación
+    Entonces deben mostrarse las opciones disponibles
+    Cuando selecciono la opción Eliminar imputación
+    Entonces debe aparecer una ventana modal solicitando confirmación de la eliminación
+    Cuando verifico la interfaz de la pantalla
+    Entonces la interfaz debe mostrarse correctamente
 
-  # ===================================================== Agregar gasto
+  # ===================================================== Añadir gasto
   @datos-prueba
-  Escenario: TC-IH-09 Agregar gasto - Funcionalidad agregar gasto
-    Dado el día de prueba está sin imputaciones
-    Cuando selecciono el día de prueba en el calendario
-    Y creo una imputación de prueba con descripción "Imputación con gasto" y "01:00" horas
-    Y abro el detalle de la primera imputación
-    Y pulso añadir gasto
-    Entonces se abre el diálogo de añadir gasto
-    Y el selector de archivo del gasto acepta imágenes jpeg, jpg, png y pdf
-    Cuando despliego el tipo de gasto
-    Entonces se listan varios tipos de gasto
-    Cuando selecciono el tipo de gasto "Taxi"
+  Escenario: TC-IH-09 Añadir gasto - Funcionalidad
+    Dado que abro el portal de Seidor Intranet
+    Y accedo a Informes → Imputación de horas
+    Y el día de prueba está sin imputaciones
+    Y creo una imputación de prueba con descripción "Imputación con gasto" y horas "01:00"
+    Y selecciono en el calendario la fecha de prueba, que tiene imputaciones
+    Y selecciono la imputación de la tabla
+    Cuando hago clic en el enlace Añadir gasto
+    Entonces debe abrirse la ventana para añadir gastos
+    # Desvío documentado: el documento sube el justificante antes de elegir el tipo de gasto, pero con
+    # el tipo de gasto vacío el backend devuelve 500 al subir el ticket (POST /rapports/tickets ->
+    # System.FormatException: "The input string '' was not in a correct format", confirmado en dev).
+    # Se elige primero el tipo de gasto para poder ejercitar el resto del paso de forma realista.
+    Cuando hago clic en el desplegable Tipo de gasto
+    Entonces se abre el desplegable y se muestra la lista de tipos de gasto disponibles
+    Cuando selecciono el tipo de gasto "Taxi" del desplegable
     Entonces el tipo de gasto seleccionado es "Taxi"
-    Y el campo moneda está habilitado
-    Cuando escribo el importe "abc12"
-    Entonces el importe solo contiene dígitos y separadores
-    Cuando escribo el importe "123456789"
-    Entonces el importe tiene como máximo 7 dígitos
-    Cuando escribo el importe "25"
-    Y relleno lugar "Madrid" y descripción "Prueba automatizada gasto" del gasto
-    Y guardo el gasto
-    Entonces el gasto aparece en la tabla de gastos del detalle con importe "25"
-    Y se registra como no automatizable: "lectura de tickets por IA, cálculo de kilómetros y rutas (cuentas externas), subida de tickets reales y límites de 5 MB"
+    Y el campo Moneda está habilitado para un tipo de gasto distinto de Kilómetro
+    Cuando hago clic en el icono Seleccionar archivo para elegir una imagen
+    Entonces debe ser posible cargar una imagen desde los archivos
+    Y se registra como no automatizable: "reconocimiento de los datos de la imagen por IA (factura real) y su comportamiento cuando la IA no puede leerla: requiere un justificante real y un servicio de IA que no se puede ejercitar de forma determinista en una prueba automatizada"
+    Entonces el selector de archivo acepta JPEG, PNG, JPG o PDF
+    Y se registra como no automatizable: "moneda cuando el tipo de gasto es Kilómetro (debe ser la del perfil del usuario): no se puede alterar la moneda configurada en el perfil del usuario de pruebas"
+    Cuando escribo en el campo Importe "abc12"
+    Entonces el campo Importe acepta únicamente números
+    Cuando escribo en el campo Importe "123456789"
+    Entonces el campo Importe permite como máximo 7 dígitos
+    Y se registra como no automatizable: "cálculo del importe cuando el tipo de gasto es Kilómetro según la tarifa por kilómetro: depende de un cálculo de ruta con un servicio externo, ver más abajo"
+    Cuando escribo en el campo Importe "25"
+    Entonces el campo Destino acepta hasta 50 caracteres para el nombre del lugar
+    Cuando relleno el campo Destino "Madrid" y la descripción "Prueba automatizada gasto"
+    Y se registra como no automatizable: "la dirección se selecciona a partir de resultados de búsqueda, ida y vuelta, añadir parada y calcular km: todos dependen del servicio externo de geocodificación/rutas (tipo de gasto Kilómetro), no determinista en una prueba automatizada"
+    Cuando verifico la carga de archivos para un tipo de gasto distinto de Kilómetro
+    Entonces se aceptan archivos JPEG, PNG, JPG o PDF de menos de 5 MB
+    Y se registra como no automatizable: "no se permite cargar archivos cuando el tipo de gasto es Kilómetro: requiere repetir el flujo con tipo de gasto Kilómetro, ya marcado como no automatizable arriba por depender del cálculo de rutas"
+    Cuando hago clic en el botón Guardar del gasto
+    Entonces el gasto aparece en la tabla de gastos del detalle con el importe "25"
+    # "Añadir gasto" siempre abre un formulario en blanco (no permite reabrir un gasto ya guardado
+    # para editarlo); el botón Eliminar se verifica sobre un gasto recién añadido a ese formulario,
+    # antes de guardar, tal como describe el propio test case en el paso siguiente (dos o más gastos).
+    # Para evitar guardar el formulario sin ninguna línea (caso borde que deja el diálogo en un estado
+    # inconsistente), el botón Eliminar se comprueba sobre una línea de sobra mientras queda otra para
+    # guardar; de paso cubre también "dos o más justificantes" (paso siguiente del documento).
+    Cuando abro de nuevo el formulario de añadir gasto y relleno dos gastos nuevos
+    Y hago clic en el botón Eliminar de uno de esos gastos
+    Y guardo el formulario de gasto
+    Entonces el gasto queda eliminado al guardar el formulario de añadir gasto
+    Y es posible añadir más de un justificante y guardarlos
+    Y se registra como no automatizable: "número máximo de kilómetros (99999) en el campo Kilómetro: depende del tipo de gasto Kilómetro, no automatizable por el cálculo de rutas"
 
-  Escenario: TC-IH-10 Agregar gasto - Agregar gasto UI
-    Cuando selecciono el día 12 de mayo de 2026 en el calendario
-    Y abro el detalle de la primera imputación
-    Y pulso añadir gasto
-    Entonces el diálogo de gasto muestra título, datos del cargo, campos y botones esperados
-    Cuando cierro el diálogo abierto
+  Escenario: TC-IH-10 Añadir gasto - UI
+    Dado que abro el portal de Seidor Intranet
+    Y accedo a Imputación de horas
+    Y accedo a Añadir gasto
+    Cuando añado un gasto con justificante
+    Y verifico la interfaz de usuario
+    Entonces la interfaz debe mostrarse correctamente
 
   # ===================================================== Página de detalle
-  Escenario: TC-IH-11 Página de detalle - Página de detalle UI
-    Cuando selecciono el día 12 de mayo de 2026 en el calendario
-    Y abro el detalle de la primera imputación
-    Entonces el detalle muestra los campos y la tabla de gastos
+  Escenario: TC-IH-11 Página de detalle - UI
+    Dado que abro el portal de Seidor Intranet
+    Y accedo a Informes → Imputación de horas
+    Y selecciono en el calendario un día que tenga imputaciones
+    Cuando hago clic en una imputación de la tabla
+    Entonces se navega a la página de detalle de la imputación
+    Y verifico la interfaz de usuario de la página de detalle
+    Entonces la interfaz debe mostrarse correctamente
 
-  Escenario: TC-IH-12 Página de detalle - Funcionalidad página de detalle
-    Cuando selecciono el día 12 de mayo de 2026 en el calendario
+  Escenario: TC-IH-12 Página de detalle - Funcionalidad
+    Dado que abro el portal de Seidor Intranet
+    Y accedo a Informes → Imputación de horas
+    Y selecciono en el calendario un día que tenga imputaciones
     Y memorizo los datos de la primera fila de la tabla
-    Y abro el detalle de la primera imputación
-    Entonces los datos del detalle coinciden con la fila de la tabla
-    Cuando pulso añadir gasto
-    Entonces se abre el diálogo de añadir gasto
-    Cuando cierro el diálogo abierto
-    Y cierro el detalle de la imputación
-    Entonces el detalle de la imputación ya no está visible
+    Cuando hago clic en una imputación de la tabla
+    Entonces se navega a la página de detalle de la imputación
+    Cuando verifico el funcionamiento del botón Añadir gasto
+    Entonces debe abrirse el formulario para añadir gastos
+    Cuando cierro el formulario de gasto
+    Entonces los datos de la imputación en el detalle son correctos
+    Y los gastos son correctos en la página de detalle
+    Cuando verifico el funcionamiento del botón Cerrar
+    Entonces la página de detalle debe cerrarse
 
   # ===================================================== Resumen
-  Escenario: TC-IH-13 Resumen - Resumen UI
-    Cuando selecciono el día 12 de mayo de 2026 en el calendario
-    Y abro la pestaña Resumen
-    Entonces el resumen muestra el bloque del día y el del mes con horas registradas y total de gastos
-    Y el bloque del día muestra la fecha "12 mayo 2026"
+  Escenario: TC-IH-13 Resumen - UI
+    Dado que abro el portal de Seidor Intranet
+    Y accedo al formulario de añadir imputación
+    Y accedo a la sección Resumen
+    Cuando verifico la interfaz de usuario del Resumen
+    Entonces la interfaz debe mostrarse correctamente
 
-  Escenario: TC-IH-14 Resumen - Funcionalidad resumen
-    Cuando selecciono el día 12 de mayo de 2026 en el calendario
-    Y abro la pestaña Resumen
-    Entonces las horas del día en el resumen coinciden con el total de la tabla de la pestaña Simple
-    Y las horas del mes en el resumen coinciden con la suma de horas del calendario
-    Y los gastos del día en el resumen coinciden con la suma de la columna gastos
-    Y los gastos del mes en el resumen son un importe válido no inferior a los del día
+  Escenario: TC-IH-14 Resumen - Funcionalidad
+    Dado que abro el portal de Seidor Intranet
+    Y accedo al formulario de añadir imputación
+    Y selecciono en el calendario un día que tenga imputaciones
+    Y accedo a la sección Resumen
+    Cuando verifico el tiempo imputado durante el día
+    Entonces el tiempo mostrado en el resumen es correcto
+    Cuando verifico el tiempo total del mes
+    Entonces la suma total del tiempo del mes es correcta
+    Cuando verifico los gastos añadidos durante el día
+    Entonces los gastos mostrados en el resumen del día son correctos
+    Cuando verifico los gastos añadidos durante el mes
+    Entonces los gastos mostrados en el resumen del mes son correctos
 
   # ===================================================== Copiar día
-  Escenario: TC-IH-15 Copiar día - Copiar día UI
-    Cuando selecciono el día 12 de mayo de 2026 en el calendario
-    Y abro el diálogo de copiar día desde más acciones
-    Entonces el diálogo de copiar día muestra la fecha "12/05/2026", las opciones Rango y Días, el calendario y los botones
-    Cuando cierro el diálogo abierto
-
-  Escenario: TC-IH-16 Copiar día - Funcionalidad copiar día
-    Cuando selecciono el día 12 de mayo de 2026 en el calendario
-    Y abro el diálogo de copiar día desde más acciones
-    Entonces el diálogo de copiar día muestra la fecha "12/05/2026", las opciones Rango y Días, el calendario y los botones
-    Cuando selecciono el modo "Días" en el diálogo de copiar día
-    Entonces el modo "Días" queda marcado en el diálogo de copiar día
-    Cuando selecciono el modo "Rango" en el diálogo de copiar día
-    Entonces el modo "Rango" queda marcado en el diálogo de copiar día
-    Cuando cancelo el diálogo de copiar día
-    Entonces el diálogo de copiar día está cerrado
-    Y se registra como no automatizable: "la copia efectiva (selección de fechas, rango, sobrescritura, validaciones de 31 días, fines de semana y cierre de periodo) no se automatiza por no poder alterar datos de mayo ni verificar el calendario interno del diálogo; pendiente de revisión manual"
-  # ===================================================== Eliminar día
-  Escenario: TC-IH-17 Eliminar día - Eliminar día UI
-    Cuando selecciono el día 12 de mayo de 2026 en el calendario
-    Y elijo la opción "Borrar día" del menú más acciones
-    Entonces aparece el diálogo de confirmación de borrado de día
-    Cuando cancelo el borrado en el diálogo de confirmación
-    Entonces la tabla de imputaciones tiene al menos una fila
+  Escenario: TC-IH-15 Copiar día - UI
+    Dado que abro el portal de Seidor Intranet
+    Y accedo a Imputación de horas
+    Y selecciono en el calendario un día que tenga imputaciones
+    Cuando hago clic en el botón Copiar día
+    Entonces se abre el diálogo Copiar día y la interfaz se muestra correctamente
 
   @datos-prueba
-  Escenario: TC-IH-18 Eliminar día - Funcionalidad eliminar día
-    Dado el día de prueba está sin imputaciones
-    Cuando selecciono el día de prueba en el calendario
-    Y creo una imputación de prueba con descripción "Día a borrar 1" y "01:00" horas
-    Y creo una imputación de prueba con descripción "Día a borrar 2" y "00:30" horas
-    Entonces la tabla de imputaciones muestra 2 filas
-    Cuando elijo la opción "Borrar día" del menú más acciones
-    Entonces aparece el diálogo de confirmación de borrado de día
-    Cuando cancelo el borrado en el diálogo de confirmación
-    Entonces la tabla de imputaciones muestra 2 filas
-    Cuando elijo la opción "Borrar día" del menú más acciones
-    Y confirmo el borrado en el diálogo de confirmación
-    Entonces la tabla de imputaciones está vacía
+  Escenario: TC-IH-16 Copiar día - Funcionalidad
+    Dado que abro el portal de Seidor Intranet
+    Y accedo a Imputación de horas
+    Y el día de prueba está sin imputaciones
+    Y creo una imputación de prueba con descripción "Imputación para copiar" y horas "01:00"
+    Y selecciono en el calendario la fecha de prueba, que tiene imputaciones
+    Cuando hago clic en el botón Copiar día
+    Entonces el diálogo Copiar día se abre
+    Cuando verifico la fecha que se va a copiar en el diálogo
+    Entonces la fecha que se va a copiar se muestra en el diálogo
+    Cuando selecciono el botón de opción Días
+    Entonces queda marcado el modo de selección de días aleatorios a los que copiar la imputación
+    Y se registra como no automatizable: "seleccionar fechas aleatorias en el calendario del diálogo (incluyendo de distintos meses), quitar una fecha seleccionada con su botón de cierre y navegar con ‹/› ese calendario: es un calendario de selección múltiple embebido en el diálogo, distinto del calendario principal, y no se ha podido automatizar de forma fiable sin arriesgar una copia real de datos sobre otros días del entorno"
+    Cuando hago clic en el botón Copiar sin ninguna fecha seleccionada
+    Entonces el botón Copiar está deshabilitado
+    Cuando selecciono el botón de opción Rango
+    Entonces queda marcado el modo de selección de un rango de fechas al que copiar los datos
+    Cuando hago clic en el botón Cancelar del diálogo Copiar día
+    Entonces el diálogo Copiar día se cierra
+    Y se registra como no automatizable: "ejecutar la copia real (botón Copiar con fechas o rango seleccionados), su mensaje de confirmación, la casilla de sobrescritura cuando el periodo ya tiene datos, la restricción de fines de semana y el error al superar 31 días: todo ello depende de completar la selección en ese calendario múltiple, ver el punto anterior; se automatiza en su lugar que el botón Copiar permanece deshabilitado sin selección y que los modos Días/Rango son seleccionables"
+    Cuando selecciono en el calendario el día de prueba, sin imputaciones, y verifico el menú más acciones
+    Entonces la opción Copiar día está deshabilitada o ausente para un día sin imputaciones
+    Y se registra como no automatizable: "validación por cierre del periodo de informes de una división: requiere una división con el periodo de informes cerrado, no disponible para el usuario de pruebas"
+
+  # ===================================================== Eliminar día
+  Escenario: TC-IH-17 Eliminar día - UI
+    Dado que abro el portal de Seidor Intranet
+    Y selecciono en el calendario un día que tenga imputaciones
+    Cuando hago clic en el botón Eliminar día dentro de las opciones adicionales
+    Entonces aparece el diálogo de confirmación de borrado de día y la interfaz se muestra correctamente
+
+  @datos-prueba
+  Escenario: TC-IH-18 Eliminar día - Funcionalidad
+    Dado que abro el portal de Seidor Intranet
+    Y el día de prueba está sin imputaciones
+    Y creo una imputación de prueba con descripción "Día a borrar" y horas "01:00"
+    Y selecciono en el calendario la fecha de prueba, que tiene imputaciones
+    Cuando hago clic en el botón Eliminar día dentro de las opciones adicionales
+    Entonces aparece una ventana de confirmación antes de eliminar
+    Cuando hago clic en el botón Cancelar de la ventana de confirmación
+    Entonces la ventana de confirmación se cierra sin eliminar el día
+    Cuando hago clic en el botón Eliminar día dentro de las opciones adicionales
+    Y hago clic en el botón Aceptar de la ventana de confirmación
+    Entonces el día y sus horas imputadas se eliminan
 
   # ===================================================== Paginación
-  Escenario: TC-IH-19 Paginación - Paginación UI
-    Cuando selecciono el día 14 de julio de 2026 en el calendario
-    Entonces la tabla de imputaciones está vacía
-    Y el paginador no se muestra o no ofrece páginas adicionales
-    Cuando selecciono el día 12 de mayo de 2026 en el calendario
-    Entonces el número de páginas del paginador, si existe, coincide con las filas existentes
+  Escenario: TC-IH-19 Paginación - UI
+    Dado que abro el portal de Seidor Intranet
+    Entonces la interfaz debe mostrarse correctamente
+    Y accedo a Informes → Imputación de horas
+    Cuando selecciono en el calendario un día sin imputaciones y verifico la paginación y la interfaz
+    Entonces la interfaz debe mostrarse correctamente
+    Cuando selecciono en el calendario un día con imputaciones y hago clic en el desplegable de elementos por página
+    Entonces la interfaz debe mostrarse correctamente
+    Cuando verifico que se pueden seleccionar números de página desde el desplegable
+    Entonces la interfaz debe mostrarse correctamente
+    Cuando cambio el número de elementos por página
+    Entonces la interfaz debe mostrarse correctamente
+    Cuando añado o elimino registros y verifico la paginación
+    Entonces la interfaz debe mostrarse correctamente
+    Cuando ordeno los registros y verifico la paginación
+    Entonces la interfaz debe mostrarse correctamente
+    Y se registra como no automatizable: "flechas simples/dobles de cambio de página y selección de números de página: el documento describe una tabla multi-fecha con varias páginas de resultados; la tabla de Imputación horas está acotada a un solo día y, con los datos de prueba disponibles, no llega a tener una segunda página"
 
   @datos-prueba
-  Escenario: TC-IH-20 Paginación - Funcionalidad paginación
-    Dado el día de prueba está sin imputaciones
-    Cuando selecciono el día de prueba en el calendario
-    Entonces el paginador no se muestra o no ofrece páginas adicionales
+  Escenario: TC-IH-20 Paginación - Funcionalidad
+    Dado que abro el portal de Seidor Intranet
+    Y accedo a Informes → Imputación de horas
+    Y el día de prueba está sin imputaciones
+    Cuando selecciono en el calendario la fecha de prueba, sin imputaciones
+    Entonces la paginación no se muestra porque no hay registros en la página
     Cuando creo tres imputaciones de prueba con distintas descripciones y horas
     Entonces la tabla de imputaciones muestra 3 filas
-    Y la tabla no muestra más filas que 10 por página
-    Y el número de páginas del paginador, si existe, coincide con las filas existentes
-    Y se registra como no automatizable: "navegación entre páginas (flechas simples/dobles, selector de elementos por página) requiere más de una página de datos; el entorno de pruebas no tiene volumen suficiente"
+    Y la paginación, si existe, se personaliza según los elementos por página
+    Cuando hago clic en el desplegable de elementos por página
+    Entonces se muestra el número de elementos disponibles por página
+    Y se registra como no automatizable: "seleccionar número de página desde el desplegable, botones de flecha simple/doble y clic en números de página: requieren más de una página de datos; el entorno de pruebas no tiene volumen suficiente para llegar a una segunda página en la tabla de un solo día"
 
-  # ===================================================== Ordenamiento
-  # El documento lista primero el caso "Functionality" (ID 2010) y después el "UI" (ID 2011).
-  @datos-prueba
-  Escenario: TC-IH-21 Ordenamiento - Funcionalidad ordenamiento
-    Dado el día de prueba está sin imputaciones
-    Cuando selecciono el día de prueba en el calendario
+  # ===================================================== Ordenación
+  Escenario: TC-IH-21 Ordenación - Funcionalidad
+    Dado que abro el portal de Seidor Intranet
+    Y accedo a Imputación de horas
+    Y el día de prueba está sin imputaciones
     Y creo tres imputaciones de prueba con distintas descripciones y horas
-    Y ordeno la tabla por la columna "Horas"
-    Entonces la columna "Horas" está ordenada en sentido "ascending"
-    Y los valores de la columna "Horas" están ordenados de forma "ascendente"
-    Cuando ordeno la tabla por la columna "Horas"
-    Entonces la columna "Horas" está ordenada en sentido "descending"
-    Y los valores de la columna "Horas" están ordenados de forma "descendente"
-    Cuando ordeno la tabla por la columna "Descripción"
-    Entonces los valores de la columna "Descripción" están ordenados de forma "ascendente"
-    Cuando ordeno la tabla por la columna "Descripción"
-    Entonces los valores de la columna "Descripción" están ordenados de forma "descendente"
+    Y selecciono en el calendario la fecha de prueba, que tiene imputaciones
+    Cuando verifico la ordenación ascendente de la columna Horas
+    Entonces los valores de la columna Horas se ordenan de forma ascendente
+    Cuando verifico la ordenación descendente de la columna Horas
+    Entonces los valores de la columna Horas se ordenan de forma descendente
+    Cuando verifico la ordenación ascendente del campo Descripción
+    Entonces los registros se ordenan alfabéticamente de la A a la Z
+    Cuando verifico la ordenación descendente del campo Descripción
+    Entonces los registros se ordenan alfabéticamente de la Z a la A
+    Y se registra como no automatizable: "ordenación de las columnas Fecha y Gastos, y de los campos Proyecto, Subproyecto, Tarea, Situación y Creador con varios valores distintos, y la ordenación en páginas distintas de la primera: el documento describe una tabla multi-fecha con varias páginas; la tabla de Imputación horas de un solo día no tiene columna Fecha y, con los datos de prueba disponibles, no llega a una segunda página"
 
-  Escenario: TC-IH-22 Ordenamiento - Ordenamiento UI
-    Cuando selecciono el día 12 de mayo de 2026 en el calendario
-    Entonces las columnas de la tabla son ordenables y el diseño se mantiene tras ordenar
-
+  Escenario: TC-IH-22 Ordenación - UI
+    Dado que abro el portal de Seidor Intranet
+    Y accedo a Imputación de horas
+    Y selecciono en el calendario un día que tenga imputaciones
+    Cuando ordeno los registros de la tabla
+    Entonces la interfaz no se ve afectada al ordenar

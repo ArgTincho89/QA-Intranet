@@ -45,7 +45,10 @@ export class ImputacionHorasPage {
   pestana(nombre: string): Locator { return this.page.locator('p-tab').filter({ hasText: nombre }).first(); }
 
   async esperarCarga(): Promise<void> {
-    await this.page.locator('.p-datepicker-day-cell').first().waitFor({ state: 'visible', timeout: 60_000 });
+    await this.page
+      .locator('.p-datepicker-day-cell:not(.p-datepicker-other-month) span.p-datepicker-day')
+      .first()
+      .waitFor({ state: 'visible', timeout: 60_000 });
     await this.page.waitForTimeout(800);
   }
 
@@ -109,17 +112,29 @@ export class ImputacionHorasPage {
     });
   }
 
+  /**
+   * El tiempo imputado no es texto del DOM: se pinta con CSS a partir de una clase `hour-HH-MM`
+   * (ver imputation-calendar.component.ts `getClassListByState`), consumida por un `::before`/
+   * `::after` con `content: var(--hour-label)`. `innerText()` nunca la ve.
+   */
   async horasDia(dia: number): Promise<number> {
-    const texto = (await this.celdaDia(dia).innerText()).replace(/\s+/g, ' ');
-    const m = texto.match(/(\d{1,3}:\d{2})\s*h/i);
-    return m ? aMinutos(m[1]!) : 0;
+    const clases = await this.clasesDia(dia);
+    const m = clases.match(/hour-(\d{1,3})-(\d{2})\b/);
+    return m ? Number(m[1]) * 60 + Number(m[2]) : 0;
   }
 
   async totalHorasCalendario(): Promise<number> {
-    const celdas = await this.page.locator('.p-datepicker-day-cell:not(.p-datepicker-other-month)').allInnerTexts();
-    return celdas.reduce((acc, t) => {
-      const m = t.replace(/\s+/g, ' ').match(/(\d{1,3}:\d{2})\s*h/i);
-      return acc + (m ? aMinutos(m[1]!) : 0);
+    const clasesPorCelda = await this.page
+      .locator('.p-datepicker-day-cell:not(.p-datepicker-other-month)')
+      .evaluateAll((els) =>
+        els.map((e) => {
+          const todas = [e as HTMLElement, ...Array.from(e.querySelectorAll('*'))] as HTMLElement[];
+          return todas.map((x) => x.className?.toString() ?? '').join(' ');
+        })
+      );
+    return clasesPorCelda.reduce((acc, clases) => {
+      const m = clases.match(/hour-(\d{1,3})-(\d{2})\b/);
+      return acc + (m ? Number(m[1]) * 60 + Number(m[2]) : 0);
     }, 0);
   }
 
@@ -136,7 +151,9 @@ export class ImputacionHorasPage {
   }
 
   async totalHorasTabla(): Promise<number> {
-    const t = await this.simple.getByText(/Total horas/).first().innerText();
+    // La etiqueta "Total horas:" y el valor ("0:30h") son nodos de texto hermanos, no el mismo
+    // elemento: hay que leer el contenedor padre, no el <span> que solo tiene la etiqueta.
+    const t = await this.simple.getByText(/Total horas/).first().locator('xpath=..').innerText();
     return aMinutos(t);
   }
 
@@ -166,6 +183,20 @@ export class ImputacionHorasPage {
     await this.page.waitForTimeout(800);
   }
 
+  /** Texto "Categoría X" que muestra el formulario (modo añadir/edición en línea) o el bloque de edición, en cuanto hay un proyecto válido. */
+  async categoriaTexto(contenedor: Locator): Promise<string> {
+    const texto = (await contenedor.innerText()).replace(/\s+/g, ' ');
+    const m = texto.match(/Categor[ií]a\s*:?\s*(\S+)/i);
+    return m ? m[1]! : '';
+  }
+
+  /** Abre el desplegable (lupa) de un autocompletar y devuelve el texto de las opciones listadas ("Sin opciones disponibles" si no hay). */
+  async opcionesAutocompletar(contenedor: Locator, id: string): Promise<string[]> {
+    await contenedor.locator(`#${id}`).locator('xpath=ancestor::p-autocomplete').locator('.p-autocomplete-dropdown').click();
+    await this.page.locator('ul[role=listbox]').first().waitFor({ state: 'visible', timeout: 15_000 });
+    return (await this.page.locator('ul[role=listbox] li').allInnerTexts()).map((t) => t.trim());
+  }
+
   async rellenarImputacion(datos: { proyecto: string; descripcion?: string; horas: string; situacion?: string; refInterna?: string }): Promise<void> {
     await this.elegirAutocompletar(this.formulario, 'projectid-0', datos.proyecto);
     if (datos.descripcion !== undefined) {
@@ -192,7 +223,8 @@ export class ImputacionHorasPage {
   }
 
   async guardarImputacion(): Promise<void> {
-    await this.formulario.locator('#save-imputation-btn').click();
+    // Guardar/Limpiar son hermanos de .imputation-wrapper-card (bloque .btns-block aparte), no hijos.
+    await this.simple.locator('#save-imputation-btn').click();
     await this.page.waitForTimeout(2000);
   }
 
@@ -206,6 +238,32 @@ export class ImputacionHorasPage {
     await this.abrirMasAcciones();
     await this.page.locator('.p-tieredmenu, .p-menu').last().getByText(opcion, { exact: true }).first().click();
     await this.page.waitForTimeout(800);
+  }
+
+  // ---------- Gastos ----------
+  async subirTicket(indice: number, rutaArchivo: string): Promise<void> {
+    await this.dialogo.locator('app-expense').nth(indice).locator('input[type=file]').setInputFiles(rutaArchivo);
+    await this.page.waitForTimeout(500);
+  }
+
+  async eliminarGasto(indice: number): Promise<void> {
+    await this.dialogo.locator('.expense-deletebtn').nth(indice).click();
+    await this.page.waitForTimeout(300);
+  }
+
+  async anadirGasto(): Promise<void> {
+    // Deshabilitado mientras la(s) línea(s) de gasto actuales no sean válidas (expensesFormArray.valid).
+    // Se consulta el locator en vivo en cada iteración (nunca un elementHandle congelado, que puede
+    // quedar obsoleto si Angular reemplaza el nodo entre renders).
+    const boton = this.dialogo.locator('.modal-expense-addmore');
+    const limite = Date.now() + 30_000;
+    while (Date.now() < limite) {
+      const clase = await boton.getAttribute('class').catch(() => null);
+      if (clase !== null && !clase.includes('disabled')) break;
+      await this.page.waitForTimeout(500);
+    }
+    await boton.click();
+    await this.page.waitForTimeout(300);
   }
 
   // ---------- Diálogos ----------

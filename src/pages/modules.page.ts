@@ -10,7 +10,7 @@ export interface ExpectedElement {
 }
 
 export interface ModuleSpec {
-  /** Id del `div.custom-card` en la home. */
+  /** Id del `.custom-card` en la home. */
   cardId: string;
   title: string;
   /** Ruta esperada tras el clic (independiente del entorno). */
@@ -761,7 +761,7 @@ export class ModulesPage {
   constructor(private readonly page: Page) {}
 
   card(spec: ModuleSpec) {
-    return this.page.locator(`div.custom-card#${spec.cardId}`);
+    return this.page.locator(`.custom-card#${spec.cardId}`);
   }
 
   /** Devuelve la pestaña nueva si el clic abre una (módulos externos); si no, undefined. */
