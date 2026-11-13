@@ -57,6 +57,33 @@ Pruebas actuales (`src/features/modules.feature`): desde la home se pulsa la tar
 | TC-IH-19 / 20 | Paginación | UI / Funcionalidad |
 | TC-IH-21 / 22 | Ordenamiento | Funcionalidad / UI |
 
+### Feature "Resumen imputaciones" (`src/features/resumen-imputaciones.feature`)
+
+40 casos (TC-RI-01 a 40) de la suite de Azure DevOps "Imputations summary" (ID 532), con la nomenclatura `TC-RI-NN - <título>`. Ejecutar con `npm run test:dev -- --tags "@resumen-imputaciones"` (o `--name "TC-RI-01 "` para uno). Los casos `@vistas-prueba` crean y borran vistas propias `QA_RI_*`; los `@datos-prueba` usan el 14/07/2026 y lo limpian. Los desvíos respecto al documento (navegación, filtros inexistentes, textos de botones, datos) están documentados en la cabecera del feature; los pasos no automatizables se registran como aviso, no como verificados.
+
+| ID | Sección | Caso |
+|---|---|---|
+| TC-RI-01 / 02 | Crear vista | UI / Funcionalidad |
+| TC-RI-03 / 04 | Editar vista | Funcionalidad / UI |
+| TC-RI-05 / 06 | Eliminar vista | Funcionalidad / UI |
+| TC-RI-07 / 08 | Filtro de fecha personalizado | Funcionalidad / UI |
+| TC-RI-09 / 10 | Filtro de fecha del mes actual | Funcionalidad / UI |
+| TC-RI-11 / 12 | Filtro de fecha de la semana actual | Funcionalidad / UI |
+| TC-RI-13 / 14 | Filtro por división del proyecto | Funcionalidad / UI |
+| TC-RI-15 / 16 | Filtro por división del usuario | Funcionalidad / UI |
+| TC-RI-17 / 18 | Filtro por país (no existe en la pantalla) | Funcionalidad / UI |
+| TC-RI-19 / 20 | Filtro por centro de trabajo (no existe) | Funcionalidad / UI |
+| TC-RI-21 / 22 | Filtro por código de subproyecto (no existe) | Funcionalidad / UI |
+| TC-RI-23 / 24 | Filtro por creador (no existe) | Funcionalidad / UI |
+| TC-RI-25 / 26 | Filtro por cliente (no existe) | Funcionalidad / UI |
+| TC-RI-27 / 28 | Selección de campos | Funcionalidad / UI |
+| TC-RI-29 / 30 | Editar imputación | Funcionalidad / UI |
+| TC-RI-31 / 32 | Eliminar imputación | Funcionalidad / UI |
+| TC-RI-33 / 34 | Ordenación | Funcionalidad / UI |
+| TC-RI-35 / 36 | Exportar a Excel | UI / Funcionalidad |
+| TC-RI-37 / 38 | Arrastrar y soltar columnas | Funcionalidad / UI |
+| TC-RI-39 / 40 | Añadir imputación como completador | UI / Funcionalidad |
+
 ## Cómo ejecutar las pruebas (resumen)
 
 ```bash
