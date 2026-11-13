@@ -968,12 +968,17 @@ When('hago clic en el botón Guardar del gasto', async function (this: CustomWor
 });
 
 Then('el gasto aparece en la tabla de gastos del detalle con el importe {string}', async function (this: CustomWorld, importe: string) {
-  const t = (await this.page.locator('body').innerText()).replace(/\s+/g, ' ');
-  assert.ok(t.includes(importe), `No se ve el importe del gasto en el detalle: ${t.slice(-600)}`);
+  // Acotado a la tabla de Gastos del detalle (cabecera "Importe"): comprobar todo `body` corre el
+  // riesgo de un falso positivo si el importe coincide con un día visible en el calendario.
+  const tablaGastos = this.page.locator('table').filter({ has: this.page.locator('th', { hasText: 'Importe' }) });
+  const t = (await tablaGastos.innerText()).replace(/\s+/g, ' ');
+  assert.ok(t.includes(importe), `No se ve el importe del gasto en la tabla de gastos del detalle: ${t.slice(-600)}`);
 });
 
 When('abro de nuevo el formulario de añadir gasto y relleno dos gastos nuevos', { timeout: 150_000 }, async function (this: CustomWorld) {
-  const addExpenseBtn = this.page.locator('span.btn.btn-rounded.btn-blue').filter({ hasText: 'Añadir gasto' }).first();
+  // El elemento es un <button>, no un <span> (comprobado en vivo con un volcado del DOM): con el
+  // selector `span.btn...` el locator nunca encontraba nada y el clic fallaba por timeout tras 20s.
+  const addExpenseBtn = this.page.locator('.btn.btn-rounded.btn-blue').filter({ hasText: 'Añadir gasto' }).first();
   await addExpenseBtn.click({ timeout: 20_000 });
   const d = ih(this).dialogo;
   await d.waitFor({ state: 'visible', timeout: 15_000 });

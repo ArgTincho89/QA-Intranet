@@ -254,9 +254,10 @@ export class ImputacionHorasPage {
   async anadirGasto(): Promise<void> {
     // Deshabilitado mientras la(s) línea(s) de gasto actuales no sean válidas (expensesFormArray.valid).
     // Se consulta el locator en vivo en cada iteración (nunca un elementHandle congelado, que puede
-    // quedar obsoleto si Angular reemplaza el nodo entre renders).
+    // quedar obsoleto si Angular reemplaza el nodo entre renders). 60s de margen: se ha visto tardar
+    // más de 30s en quedar habilitado bajo carga (validación tras subir el ticket).
     const boton = this.dialogo.locator('.modal-expense-addmore');
-    const limite = Date.now() + 30_000;
+    const limite = Date.now() + 60_000;
     while (Date.now() < limite) {
       const clase = await boton.getAttribute('class').catch(() => null);
       if (clase !== null && !clase.includes('disabled')) break;
