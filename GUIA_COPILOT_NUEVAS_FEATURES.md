@@ -185,6 +185,39 @@ falta exactamente, no "no se pudo"). Esto queda en el reporte HTML como adjunto 
 imprime en consola (ver `live-progress-formatter.ts`), y dejando claro que **ese paso no se da por
 verificado** — no se marca el test como pasado fingiendo que sí se comprobó.
 
+### 5.1 "Este filtro/campo no existe en la pantalla" no es casi nunca la conclusión correcta
+
+Esto pasó de verdad en la feature "Resumen imputaciones" y hay que evitarlo la próxima vez.
+
+Un test case puede describir un filtro (p. ej. "País", "Centro de trabajo", "Código", "Creador",
+"Cliente") que **no está** en la pantalla donde empezaste a buscar. La tentación es concluir
+"la pantalla X no tiene ese filtro" y marcar el paso como no automatizable. **Esa conclusión casi
+siempre está mal.** Lo que pasó al revisar ese caso real: los 5 campos SÍ existían — cada uno en
+una pantalla distinta de la intranet (`countryId`/`workCenterId` en Histórico normativas, `code`
+en Resumen subproyectos, `creatorId` en Notificaciones enviadas, `clientId` en Resumen proyectos),
+confirmado leyendo el `.component.html` real de cada una. El test case simplemente **no
+pertenecía a la pantalla donde se estaba buscando** — pertenecía a otra, y esa suite de Azure
+DevOps mezclaba referencias de varias pantallas bajo un mismo nombre de suite (el propio
+documento de test cases ya avisaba de esto y pedía confirmar las rutas de navegación antes de dar
+los casos por buenos).
+
+**Antes de concluir "este campo no existe en la aplicación", busca el campo en el resto del
+frontend.** Es rápido: `grep -rn "nombreDelCampo" src/app/pages` en el repo del frontend (solo
+lectura) sobre el `configMap` o el nombre del control que esperas (p. ej. `countryId`,
+`workCenterId`, `clientId`). Si aparece en otro módulo, **no lo marques como no automatizable**:
+eso es la señal de que el test case (o varios del mismo bloque) pertenecen a otra pantalla, no de
+que el campo no exista. En ese punto, **para y pregunta al usuario** qué pantalla es la correcta
+para esos casos — no lo decidas tú consolidándolos todos en la pantalla "más parecida" solo
+porque es la que ya estabas automatizando. Si de verdad no aparece en ningún módulo del frontend
+después de buscarlo, ahí sí es un "no automatizable" legítimo (o, más probablemente, un campo que
+depende de un permiso/rol que el usuario de pruebas no tiene — compruébalo también antes de
+descartarlo).
+
+Esto es distinto de un desvío válido (§5): un desvío documenta que la UI real hace algo distinto
+de lo que dice el documento para **el mismo caso, en la misma pantalla**. Lo de arriba es sobre
+cuándo el caso entero puede estar **en la pantalla equivocada** — y eso no se resuelve con un
+comentario de desvío, se resuelve preguntando.
+
 ---
 
 ## 6. Flujo de trabajo obligatorio
@@ -200,7 +233,9 @@ hijo o hermano del contenedor que crees?), ids reales de los campos, textos real
 (pueden no coincidir con el texto del documento — p. ej. el documento dice "Eliminar imputación"
 pero el botón real dice "Borrar imputación"; usa el texto real en el código, el texto del
 documento en el Gherkin, y dilo en un comentario), lógica de validadores (`*.component.ts` /
-`*.service.ts`) para entender por qué algo está deshabilitado o es obligatorio.
+`*.service.ts`) para entender por qué algo está deshabilitado o es obligatorio. Si un campo que el
+test case pide no aparece en la pantalla que esperabas, **no concluyas que no existe**: búscalo en
+el resto del repo del frontend antes de descartarlo (ver §5.1).
 
 ### 6.2 Verifica en vivo contra dev con scripts desechables
 
@@ -275,7 +310,11 @@ confírmalo con un `--dry-run --profile suite` (debe listar las features en el o
 ### 6.8 Reporta
 
 Entrega el resumen que pide el §0, punto 5. No digas "la feature está lista" si no corriste el
-punto 6.6 contra dev y no la viste pasar.
+punto 6.6 contra dev y no la viste pasar. Si la última pasada completa falló por algo que parece
+ruido transitorio (red, timeout) y volviste a probar los casos sueltos en vez de repetir la pasada
+completa, dilo así de claro en el resumen — "no se confirmó la pasada completa en verde" — en vez
+de dar la feature por cerrada. Un "N/N casos pasan" en el resumen debe significar que se vio pasar
+la feature **completa, de una vez**, no la suma de ejecuciones sueltas.
 
 ---
 
@@ -307,6 +346,10 @@ punto 6.6 contra dev y no la viste pasar.
 - **Un fallo real de backend puede disfrazarse de "mi selector está mal"**: si una acción
   simple falla sin razón aparente, añade un listener de `page.on('response', ...)` y mira si hay
   un 4xx/5xx real antes de seguir ajustando selectores.
+- **Un filtro/campo que "no existe" en la pantalla donde buscaste casi siempre existe en otra
+  pantalla real** (ver §5.1 para el caso real: 5 filtros de "Resumen imputaciones" que en
+  realidad pertenecían a otras 4 pantallas distintas). Antes de marcar "no automatizable: el
+  campo no existe", búscalo en el resto del frontend.
 - **Lo que pasa escenario por escenario puede fallar junto**: ejecuta siempre el §6.6 antes de dar
   la feature por terminada.
 
@@ -320,8 +363,12 @@ punto 6.6 contra dev y no la viste pasar.
 - No fusiones ni reordenes pasos del documento sin documentar por qué.
 - No relajes una aserción para que un test pase si no entendiste la causa real del fallo.
 - No marques un paso como "no automatizable" sin una razón técnica concreta y verificable.
+- No concluyas "este campo no existe en la aplicación" solo porque no está en la pantalla donde
+  empezaste a buscar — búscalo en el resto del frontend antes de descartarlo (§5.1). Si varios
+  casos de la misma suite parecen apuntar a pantallas distintas de la que le da nombre a la suite,
+  para y pregunta al usuario en vez de consolidarlos todos en una pantalla por tu cuenta.
 - No des una feature por terminada sin haberla corrido contra dev (escenario por escenario y
-  completa, §6.5–§6.6).
+  completa, §6.5–§6.6) **de una sola vez, de principio a fin**.
 - No uses `console.warn`/`console.log` para mensajes informativos durante la ejecución — usa
   `this.attach(...)` para que quede en el reporte HTML sin ensuciar la consola en vivo.
 - No borres ni modifiques nada del repo del frontend: es de **solo lectura**.
