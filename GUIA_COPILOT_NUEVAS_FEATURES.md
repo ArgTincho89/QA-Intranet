@@ -218,6 +218,13 @@ de lo que dice el documento para **el mismo caso, en la misma pantalla**. Lo de 
 cuándo el caso entero puede estar **en la pantalla equivocada** — y eso no se resuelve con un
 comentario de desvío, se resuelve preguntando.
 
+**Actualización (2026-11-13): este caso concreto ya está corregido.** TC-RI-17..26 de
+`resumen-imputaciones.feature`/`.steps.ts` navegan ahora a las 4 pantallas reales (Histórico
+normativas, Resumen subproyectos, Notificaciones enviadas, Resumen proyectos) y verifican el
+filtro de verdad, en vez de registrar "no automatizable". Si alguna vez vuelves a ver un bloque de
+casos marcados como "el filtro no existe en la pantalla" en este repo, es una señal de alarma: ya
+pasó una vez, cuéstate si de verdad se investigó lo suficiente antes de concluirlo.
+
 ---
 
 ## 6. Flujo de trabajo obligatorio
@@ -352,6 +359,28 @@ la feature **completa, de una vez**, no la suma de ejecuciones sueltas.
   campo no existe", búscalo en el resto del frontend.
 - **Lo que pasa escenario por escenario puede fallar junto**: ejecuta siempre el §6.6 antes de dar
   la feature por terminada.
+- **Un `.last()`/`.first()` sobre un localizador que mezcla DOS tipos de componente parecidos
+  (p. ej. `.p-select-overlay, .p-multiselect-overlay` o `.p-select-option, .p-multiselect-option`)
+  puede capturar el overlay/opción equivocado** si la pantalla tiene más de un componente de ese
+  estilo (p. ej. un filtro `p-select` y, más abajo, el selector de Campos como `p-multiselect`).
+  Pasó al arreglar TC-RI-17..26: el `waitFor` "veía visible" un overlay que no era el que acababas
+  de abrir, y la búsqueda de la opción fallaba con 0 resultados aunque la opción sí estaba en el
+  DOM. Solución: detecta el tipo real del componente (`tagName`) y usa SOLO las clases de ESE tipo
+  (`.p-select-dropdown`/`.p-select-filter`/`.p-select-option`, nunca mezcladas con las de
+  `p-multiselect`) en cada paso.
+- **Navegar a otra pantalla que comparte el mismo wrapper (`app-summary-wrapper`) puede necesitar
+  un pequeño margen extra** antes de interactuar con sus desplegables: esperar solo a que aparezca
+  el primer campo visible (p. ej. `#startdate-0`) no siempre basta — Angular puede seguir
+  terminando de enlazar otros componentes de la pantalla. Si un `p-select`/`p-multiselect` recién
+  abierto muestra 0 opciones justo después de navegar, añade una segunda espera (otro elemento
+  visible, p. ej. el botón Filtrar) más un margen corto antes de abrir el desplegable.
+- **"Limpiar"/"Clear filters" no siempre deja los campos en blanco**: en Resumen de imputaciones
+  las fechas quedan vacías tras Limpiar, pero en otras pantallas con el mismo wrapper (Histórico
+  normativas, Resumen subproyectos, Notificaciones enviadas, Resumen proyectos) Limpiar las
+  restablece a un rango por defecto ("01/01/2000"–"31/12/2026"), no a vacío. No asumas el mismo
+  contrato de "limpiar = vacío" en una pantalla nueva solo porque lo viste en otra con un
+  componente visualmente idéntico; compruébalo en vivo y, si hace falta, verifica el filtro
+  específico (su chip en el acordeón "Filtros") en vez de la fecha en bruto.
 
 ---
 

@@ -24,9 +24,13 @@
 #    "selecciono el rango Mes actual" (marcado con comentario en cada escenario).
 #  - Textos de botones reales: "Borrar" (el documento dice "Eliminar"/"Aceptar"), "Guardar" en el modal de
 #    añadir imputación (el documento dice "Añadir").
-#  - TC-RI-17..26: los filtros País, Centro de trabajo, Código, Creador y Cliente NO existen en la pantalla
-#    (filtros reales: Desde, Hasta, División proyecto, Proyecto, Subproyecto, Tarea, División usuario, Usuario,
-#    Ref. interna y Campos). Esos pasos se registran como no automatizables con la evidencia comprobada en vivo.
+#  - TC-RI-17..26 (corregido 2026-11-13): País, Centro de trabajo, Código, Creador y Cliente NO existen en
+#    Resumen de imputaciones, pero sí existen y funcionan en otras pantallas reales de Backoffice a las que el
+#    usuario de prueba ya tiene acceso (confirmado leyendo el frontend y verificando en vivo): País y Centro de
+#    trabajo en "Histórico normativas" (normative-summary), Código en "Resumen subproyectos" (subproject-summary),
+#    Creador en "Notificaciones enviadas" (sent-notification-summary) y Cliente en "Resumen proyectos"
+#    (project-summary). Estos 10 escenarios navegan a esas pantallas en vez de a Resumen de imputaciones; el
+#    paso 5 de TC-RI-26 (filtro de moneda) sigue sin automatizar porque no se ha localizado en ninguna pantalla.
 #  - TC-RI-15/16: la tabla muestra códigos de división de usuario (p. ej. ST20) que no son seleccionables en el
 #    filtro (solo V1 y ZZ), y esas divisiones no tienen imputaciones: el filtro se aplica y devuelve "No hay datos".
 #  - TC-RI-29/31: los pasos que dependen de datos no disponibles (perfil administrador, Expense Summary, código 25,
@@ -237,85 +241,110 @@ Característica: Resumen imputaciones
     Cuando compruebo la interfaz relacionada con la funcionalidad de filtro por división
     Entonces la interfaz de Resumen de imputaciones debe mantenerse intacta
 
-  # ===================================================== Filtros inexistentes en la pantalla (país, centro, código, creador, cliente)
+  # ===================================================== País, Centro de trabajo, Código, Creador y Cliente
+  # Estos 10 casos (TC-RI-17..26) se corrigieron el 2026-11-13: el filtro País/Centro de trabajo vive en
+  # Backoffice > Histórico normativas, Código en Backoffice > Resumen subproyectos, Creador en Backoffice >
+  # Notificaciones enviadas y Cliente en Backoffice > Resumen proyectos (ver cabecera del archivo y
+  # GUIA_COPILOT_NUEVAS_FEATURES.md §5.1). Verificado en vivo que los 5 filtros existen y funcionan ahí.
   Escenario: TC-RI-17 - Filtro por país (Funcionalidad)
     Dado que abro el portal de Seidor Intranet
-    Y accedo a Informes → Resumen de imputaciones
-    Cuando selecciono todos los filtros obligatorios
-    Entonces el filtro "País" no existe en la pantalla
-    Y se registra como no automatizable: "pasos 4-6 (ir al campo País, buscar/seleccionar país y filtrar por país): la pantalla Resumen de imputaciones no tiene filtro País"
+    Y accedo a Backoffice → "Histórico normativas"
+    Cuando escribo "Alemania" en el filtro "País"
+    Entonces el filtro muestra "Alemania" como sugerencia automática
+    Cuando selecciono la sugerencia "Alemania"
+    Entonces el filtro "País" queda seleccionado con "Alemania"
+    Cuando hago clic en Filtrar
+    Entonces se filtran los datos del país "Alemania"
     Cuando hago clic en Limpiar
     Entonces se borran todos los filtros
 
   Escenario: TC-RI-18 - Filtro por país (UI)
     Dado que abro el portal de Seidor Intranet
-    Y accedo a Informes → Resumen de imputaciones
-    Entonces el filtro "País" no existe en la pantalla
-    Y se registra como no automatizable: "paso 3 (comprobar la interfaz del filtro por país): la pantalla Resumen de imputaciones no tiene filtro País"
+    Y accedo a Backoffice → "Histórico normativas"
+    Cuando compruebo la interfaz de la pantalla "Histórico normativas"
+    Entonces la interfaz de la pantalla "Histórico normativas" debe mantenerse intacta
 
   Escenario: TC-RI-19 - Filtro por centro de trabajo (Funcionalidad)
     Dado que abro el portal de Seidor Intranet
-    Y accedo a Informes → Resumen de imputaciones
-    Entonces el filtro "Centro de trabajo" no existe en la pantalla
-    Y se registra como no automatizable: "pasos 3-4 (buscar y seleccionar un centro de trabajo y filtrar): la pantalla Resumen de imputaciones no tiene filtro Centro de trabajo"
-    # Paso añadido: sin fechas no hay filtro que limpiar.
-    Cuando selecciono el rango Mes actual como filtro de fecha obligatorio
-    Y hago clic en Limpiar
+    Y accedo a Backoffice → "Histórico normativas"
+    Cuando escribo "ANDORRA" en el filtro "Centro de trabajo"
+    Entonces el filtro muestra "SEIDOR ANDORRA" como sugerencia automática
+    Cuando selecciono la sugerencia "SEIDOR ANDORRA"
+    Entonces el filtro "Centro de trabajo" queda seleccionado con "AD01 - SEIDOR ANDORRA"
+    Cuando hago clic en Filtrar
+    Entonces se filtran los datos del centro de trabajo "AD01 - SEIDOR ANDORRA"
+    Cuando hago clic en Limpiar
     Entonces se borran todos los filtros
 
   Escenario: TC-RI-20 - Filtro por centro de trabajo (UI)
     Dado que abro el portal de Seidor Intranet
-    Y accedo a Informes → Resumen de imputaciones
-    Entonces el filtro "Centro de trabajo" no existe en la pantalla
-    Y se registra como no automatizable: "paso 3 (comprobar la interfaz relacionada con Normative History / filtro por centro de trabajo): la pantalla Resumen de imputaciones no tiene filtro Centro de trabajo"
+    Y accedo a Backoffice → "Histórico normativas"
+    Cuando compruebo la interfaz de la pantalla "Histórico normativas"
+    Entonces la interfaz de la pantalla "Histórico normativas" debe mantenerse intacta
 
   Escenario: TC-RI-21 - Filtro por código de subproyecto (Funcionalidad)
     Dado que abro el portal de Seidor Intranet
-    Y accedo a Informes → Resumen de imputaciones
-    Entonces el filtro "Código" no existe en la pantalla
-    Y se registra como no automatizable: "pasos 3-4 (escribir el código del subproyecto en el campo Código y filtrar): la pantalla Resumen de imputaciones no tiene filtro Código"
-    # Paso añadido: sin fechas no hay filtro que limpiar.
-    Cuando selecciono el rango Mes actual como filtro de fecha obligatorio
-    Y hago clic en Limpiar
+    Y accedo a Backoffice → "Resumen subproyectos"
+    Cuando escribo "project1" en el filtro "Código"
+    Y hago clic en Filtrar
+    Entonces se filtra el subproyecto con el código "project1"
+    Cuando hago clic en Limpiar
     Entonces se borran todos los filtros
 
   Escenario: TC-RI-22 - Filtro por código de subproyecto (UI)
     Dado que abro el portal de Seidor Intranet
-    Y accedo a Informes → Resumen de imputaciones
-    Cuando completo todos los filtros obligatorios
-    Entonces el filtro "Código" no existe en la pantalla
-    Y se registra como no automatizable: "pasos 4-6 (escribir el código, filtrar y comprobar la interfaz del filtro por código): la pantalla Resumen de imputaciones no tiene filtro Código"
+    Y accedo a Backoffice → "Resumen subproyectos"
+    Cuando escribo "project1" en el filtro "Código"
+    Y hago clic en Filtrar
+    Entonces se filtra el subproyecto con el código "project1"
+    Cuando compruebo la interfaz de la pantalla "Resumen subproyectos"
+    Entonces la interfaz de la pantalla "Resumen subproyectos" debe mantenerse intacta
 
   Escenario: TC-RI-23 - Filtro por creador (Funcionalidad)
     Dado que abro el portal de Seidor Intranet
-    Y accedo a Informes → Resumen de imputaciones
-    Cuando selecciono los filtros obligatorios de fecha
-    Entonces el filtro "Creador" no existe en la pantalla
-    Y se registra como no automatizable: "pasos 4-6 (ir al campo Creador, escribir el creador y filtrar): Creador es solo una columna/campo de la tabla, no un filtro de la pantalla"
+    Y accedo a Backoffice → "Notificaciones enviadas"
+    # Paso del documento: "seleccionar los filtros obligatorios de fecha".
+    Y selecciono el rango Mes actual como filtro de fecha obligatorio
+    Cuando escribo "MILES" en el filtro "Creador"
+    Entonces el filtro muestra "MILES, MARTIN" como sugerencia automática
+    Cuando selecciono la sugerencia "MILES, MARTIN"
+    Entonces el filtro "Creador" queda seleccionado con "MILES, MARTIN"
+    Cuando hago clic en Filtrar
+    Entonces se listan las notificaciones cuyo creador coincide con "MILES, MARTIN"
     Cuando hago clic en Limpiar
     Entonces se borran todos los filtros
 
   Escenario: TC-RI-24 - Filtro por creador (UI)
     Dado que abro el portal de Seidor Intranet
-    Y accedo a Informes → Resumen de imputaciones
-    Entonces el filtro "Creador" no existe en la pantalla
-    Y se registra como no automatizable: "paso 3 (comprobar la interfaz del filtro por creador): Creador es solo una columna de la tabla, no un filtro de la pantalla"
+    Y accedo a Backoffice → "Notificaciones enviadas"
+    Cuando compruebo la interfaz de la pantalla "Notificaciones enviadas"
+    Entonces la interfaz de la pantalla "Notificaciones enviadas" debe mantenerse intacta
 
   Escenario: TC-RI-25 - Filtro por cliente (Funcionalidad)
     Dado que abro el portal de Seidor Intranet
-    Y accedo a Informes → Resumen de imputaciones
-    Entonces el filtro "Cliente" no existe en la pantalla
-    Y se registra como no automatizable: "pasos 3-4 (hacer clic en el campo Cliente y buscar por nombre de cliente): la pantalla Resumen de imputaciones no tiene filtro Cliente"
-    # Paso añadido: sin fechas no hay filtro que limpiar.
-    Cuando selecciono el rango Mes actual como filtro de fecha obligatorio
-    Y hago clic en Limpiar
+    Y accedo a Backoffice → "Resumen proyectos"
+    Cuando escribo "ANTEL" en el filtro "Cliente"
+    Entonces el filtro muestra "ANTEL" como sugerencia automática
+    Cuando selecciono la sugerencia "ANTEL"
+    Entonces el filtro "Cliente" queda seleccionado con "ANTEL"
+    Cuando hago clic en Filtrar
+    Entonces se listan los proyectos asociados al cliente "ANTEL"
+    Cuando hago clic en Limpiar
     Entonces se borran todos los filtros
 
   Escenario: TC-RI-26 - Filtro por cliente (UI)
     Dado que abro el portal de Seidor Intranet
-    Y accedo a Informes → Resumen de imputaciones
-    Entonces el filtro "Cliente" no existe en la pantalla
-    Y se registra como no automatizable: "pasos 3-5 (campo Cliente, búsqueda por cliente y comprobación del filtro de moneda): la pantalla Resumen de imputaciones no tiene filtro Cliente ni filtro de moneda"
+    Y accedo a Backoffice → "Resumen proyectos"
+    Cuando escribo "ANTEL" en el filtro "Cliente"
+    Y selecciono la sugerencia "ANTEL"
+    Y hago clic en Filtrar
+    Entonces se listan los proyectos asociados al cliente "ANTEL"
+    Cuando compruebo la interfaz de la pantalla "Resumen proyectos"
+    Entonces la interfaz de la pantalla "Resumen proyectos" debe mantenerse intacta
+    # El paso 5 original (comprobar la interfaz del filtro de moneda) no se automatiza: Resumen proyectos no
+    # tiene filtro de moneda y, a diferencia de País/Centro/Código/Creador, no se ha localizado en ninguna otra
+    # pantalla real del portal qué filtro de moneda describe este paso.
+    Y se registra como no automatizable: "paso 5 (comprobar la interfaz del filtro de moneda): no existe un filtro de moneda en Resumen proyectos ni se ha identificado en qué otra pantalla real del portal se encuentra"
 
   # ===================================================== Selección de campos
   Escenario: TC-RI-27 - Selección de campos (Funcionalidad)

@@ -8,7 +8,23 @@ import { aMinutos } from '../pages/imputacion-horas.page';
 import { ResumenImputacionesPage, aFecha, rangoMesActual, rangoSemanaActual } from '../pages/resumen-imputaciones.page';
 
 const PREFIJO_VISTAS = 'QA_RI_';
-const FILTROS: Record<string, string> = { 'División proyecto': 'divisionid-0', 'División usuario': 'userdivisionid-0' };
+const FILTROS: Record<string, string> = {
+  'División proyecto': 'divisionid-0',
+  'División usuario': 'userdivisionid-0',
+  'País': 'countryid-0',
+  'Centro de trabajo': 'workcenterid-0',
+  'Código': 'code-0',
+  'Creador': 'creatorid-0',
+  'Cliente': 'clientid-0',
+};
+
+/** cardId real de cada pantalla de Backoffice a la que navegan TC-RI-17..26 (ver cabecera del .feature). */
+const PANTALLAS_BACKOFFICE: Record<string, string> = {
+  'Histórico normativas': 'normative-summary',
+  'Resumen subproyectos': 'subproject-summary',
+  'Notificaciones enviadas': 'sent-notification-summary',
+  'Resumen proyectos': 'project-summary',
+};
 
 interface Estado {
   ultimoTexto: string;
@@ -22,13 +38,23 @@ interface Estado {
   columnaArrastrada: string;
   posicionDestino: number;
   opcionesSituacion: string[];
+  ultimoFiltroBackoffice: string;
 }
+
+// Etiqueta real del chip en el acordeón "Filtros" de cada pantalla (p. ej. "Centro:", no "Centro de trabajo:").
+const ETIQUETA_CHIP_BACKOFFICE: Record<string, string> = {
+  'País': 'País',
+  'Centro de trabajo': 'Centro',
+  'Código': 'Código',
+  'Creador': 'Creador',
+  'Cliente': 'Cliente',
+};
 
 const estados = new WeakMap<CustomWorld, Estado>();
 const st = (w: CustomWorld): Estado => {
   let e = estados.get(w);
   if (!e) {
-    e = { ultimoTexto: '', ordenTexto: {}, pagina1: [], pagina2: [], ordenColumnasAntes: [], ordenColumnasDespues: [], columnaArrastrada: '', posicionDestino: -1, opcionesSituacion: [] };
+    e = { ultimoTexto: '', ordenTexto: {}, pagina1: [], pagina2: [], ordenColumnasAntes: [], ordenColumnasDespues: [], columnaArrastrada: '', posicionDestino: -1, opcionesSituacion: [], ultimoFiltroBackoffice: '' };
     estados.set(w, e);
   }
   return e;
@@ -45,12 +71,34 @@ const comparar = (a: string, b: string) => a.localeCompare(b, 'es', { sensitivit
 
 async function verificarFiltrosBorrados(w: CustomWorld): Promise<void> {
   const p = ri(w);
+  const filtroBackoffice = st(w).ultimoFiltroBackoffice;
+  if (filtroBackoffice) {
+    // Histórico normativas / Resumen subproyectos / Notificaciones enviadas / Resumen proyectos: Limpiar
+    // restablece las fechas a su rango por defecto (no las deja vacías); se comprueba que el filtro
+    // específico que se había aplicado (p. ej. "País: Alemania") ya no aparece.
+    assert.ok(!new RegExp(`${filtroBackoffice}:`).test(await p.textoFiltrosActivos()), `Sigue apareciendo el filtro "${filtroBackoffice}" activo`);
+    return;
+  }
   const f = await p.fechas();
   assert.strictEqual(f.desde, '', `"Fecha desde" debería estar vacía y es "${f.desde}"`);
   assert.strictEqual(f.hasta, '', `"Fecha hasta" debería estar vacía y es "${f.hasta}"`);
   assert.strictEqual(await p.valorCampo('divisionid-0'), '', 'El filtro División proyecto debería estar vacío');
   assert.strictEqual(await p.valorCampo('userdivisionid-0'), '', 'El filtro División usuario debería estar vacío');
   assert.ok(!/Desde:/.test(await p.textoFiltrosActivos()), 'Siguen apareciendo filtros activos');
+}
+
+/** Verifica un filtro de las pantallas de Backoffice (País, Centro de trabajo, Código, Creador, Cliente):
+ * comprueba que queda activo en el acordeón de filtros y que la tabla devuelve resultados. */
+async function verificarFiltroBackoffice(w: CustomWorld, filtro: string, valor: string): Promise<void> {
+  const p = ri(w);
+  const escapado = valor.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  assert.ok(new RegExp(`${filtro}:\\s*${escapado}`).test(await p.textoFiltrosActivos()), `No aparece el filtro "${filtro}: ${valor}" activo`);
+  const filas = w.page.locator('tbody.p-datatable-tbody tr');
+  const total = await filas.count();
+  assert.ok(total > 0, `No hay filas devueltas al filtrar por ${filtro} = "${valor}"`);
+  const textos = await filas.allInnerTexts();
+  const coinciden = textos.filter((t) => t.includes(valor)).length;
+  w.attach(`${total} fila(s) devuelta(s) al filtrar por ${filtro} = "${valor}"; ${coinciden} contienen ese texto en la fila.`, 'text/plain');
 }
 
 async function verificarFilasEnRango(w: CustomWorld, desde: string, hasta: string): Promise<void> {
@@ -112,6 +160,30 @@ Then('la interfaz de Resumen de imputaciones debe mantenerse intacta', async fun
   assert.ok(await this.page.locator('#custom-table-component').isVisible(), 'No se muestra la tabla de resultados');
   const texto = await this.page.locator('app-root').innerText();
   assert.ok(!/error 500|something went wrong|ha ocurrido un error inesperado/i.test(texto), `Pantalla de error detectada: ${texto.slice(0, 200)}`);
+});
+
+// ---------------------------------------------------------------- Navegación a otras pantallas de Backoffice
+// (TC-RI-17..26: filtros País, Centro de trabajo, Código, Creador y Cliente - ver cabecera del .feature)
+When('accedo a Backoffice → {string}', async function (this: CustomWorld, pantalla: string) {
+  const cardId = PANTALLAS_BACKOFFICE[pantalla];
+  assert.ok(cardId, `Pantalla de Backoffice desconocida: "${pantalla}"`);
+  const tarjeta = this.page.locator(`.custom-card#${cardId}`);
+  const enHome = await tarjeta.waitFor({ state: 'visible', timeout: 5_000 }).then(() => true).catch(() => false);
+  if (!enHome) await irALaHomeConReintentos(this);
+  await ri(this).irA(cardId);
+});
+
+When('compruebo la interfaz de la pantalla {string}', async function (this: CustomWorld, _pantalla: string) {
+  await ri(this).acordeonFiltros.waitFor({ state: 'visible', timeout: 10_000 });
+});
+
+Then('la interfaz de la pantalla {string} debe mantenerse intacta', async function (this: CustomWorld, pantalla: string) {
+  const p = ri(this);
+  assert.ok(await p.botonFiltrar.isVisible(), 'No se muestra el botón Filtrar');
+  assert.ok(await p.botonLimpiar.isVisible(), 'No se muestra el botón Limpiar');
+  assert.ok(await this.page.locator('#custom-table-component').isVisible(), 'No se muestra la tabla de resultados');
+  const texto = await this.page.locator('app-root').innerText();
+  assert.ok(!/error 500|something went wrong|ha ocurrido un error inesperado/i.test(texto), `Pantalla de error detectada en "${pantalla}": ${texto.slice(0, 200)}`);
 });
 
 // ---------------------------------------------------------------- Vistas
@@ -373,16 +445,17 @@ for (const texto of ['selecciono todos los filtros obligatorios', 'completo todo
 When('escribo {string} en el filtro {string}', async function (this: CustomWorld, texto: string, filtro: string) {
   const id = FILTROS[filtro];
   assert.ok(id, `Filtro desconocido: ${filtro}`);
-  await ri(this).escribirEnAutocompletar(id, texto);
+  st(this).ultimoFiltroBackoffice = ETIQUETA_CHIP_BACKOFFICE[filtro] ?? '';
+  await ri(this).escribirEnFiltro(id, texto);
 });
 
 Then('el filtro muestra {string} como sugerencia automática', async function (this: CustomWorld, sugerencia: string) {
-  const opcion = this.page.locator('ul[role=listbox] li[role=option]').filter({ hasText: sugerencia }).first();
+  const opcion = this.page.locator('ul[role=listbox] li[role=option], .p-select-option, .p-multiselect-option').filter({ hasText: sugerencia }).first();
   await opcion.waitFor({ state: 'visible', timeout: 10_000 });
 });
 
 When('selecciono la sugerencia {string}', async function (this: CustomWorld, sugerencia: string) {
-  await this.page.locator('ul[role=listbox] li[role=option]').filter({ hasText: sugerencia }).first().click();
+  await this.page.locator('ul[role=listbox] li[role=option], .p-select-option, .p-multiselect-option').filter({ hasText: sugerencia }).first().click();
   await this.page.waitForTimeout(800);
 });
 
@@ -413,11 +486,26 @@ When('compruebo la interfaz relacionada con la funcionalidad de filtro por divis
   await ri(this).acordeonFiltros.waitFor({ state: 'visible', timeout: 10_000 });
 });
 
-Then('el filtro {string} no existe en la pantalla', async function (this: CustomWorld, filtro: string) {
-  const texto = await this.page.locator('p-accordion').innerText();
-  const etiquetas = texto.split('\n').map((t) => t.trim()).filter(Boolean);
-  this.attach(`Etiquetas del bloque Filtros: ${etiquetas.join(' | ')}`, 'text/plain');
-  assert.ok(!etiquetas.some((e) => e.toLowerCase() === filtro.toLowerCase()), `El filtro "${filtro}" existe en la pantalla: el caso ya es automatizable`);
+// ---------------------------------------------------------------- País, Centro de trabajo, Código, Creador, Cliente
+// (TC-RI-17..26, pantallas de Backoffice - ver cabecera del .feature)
+Then('se filtran los datos del país {string}', async function (this: CustomWorld, pais: string) {
+  await verificarFiltroBackoffice(this, 'País', pais);
+});
+
+Then('se filtran los datos del centro de trabajo {string}', async function (this: CustomWorld, centro: string) {
+  await verificarFiltroBackoffice(this, 'Centro', centro);
+});
+
+Then('se filtra el subproyecto con el código {string}', async function (this: CustomWorld, codigo: string) {
+  await verificarFiltroBackoffice(this, 'Código', codigo);
+});
+
+Then('se listan las notificaciones cuyo creador coincide con {string}', async function (this: CustomWorld, creador: string) {
+  await verificarFiltroBackoffice(this, 'Creador', creador);
+});
+
+Then('se listan los proyectos asociados al cliente {string}', async function (this: CustomWorld, cliente: string) {
+  await verificarFiltroBackoffice(this, 'Cliente', cliente);
 });
 
 // ---------------------------------------------------------------- Selección de campos

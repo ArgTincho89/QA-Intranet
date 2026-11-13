@@ -1,4 +1,5 @@
 import type { Locator, Page } from 'playwright';
+import * as assert from 'assert';
 import { ImputacionHorasPage } from './imputacion-horas.page';
 
 export type CampoFecha = 'startdate' | 'enddate';
@@ -78,6 +79,18 @@ export class ResumenImputacionesPage {
   async ir(): Promise<void> {
     await this.page.locator('.custom-card#imputation-summary').click({ timeout: 60_000 });
     await this.esperarCarga();
+  }
+
+  /**
+   * Navega a otra pantalla que comparte el mismo componente `app-summary-wrapper`
+   * (Histórico normativas, Resumen subproyectos, Notificaciones enviadas, Resumen proyectos).
+   * No comprueba el título porque cada pantalla tiene el suyo.
+   */
+  async irA(cardId: string): Promise<void> {
+    await this.page.locator(`.custom-card#${cardId}`).click({ timeout: 60_000 });
+    await this.page.locator('#startdate-0').waitFor({ state: 'visible', timeout: 60_000 });
+    await this.botonFiltrar.waitFor({ state: 'visible', timeout: 15_000 });
+    await this.page.waitForTimeout(1500);
   }
 
   // ---------- Fechas ----------
@@ -164,8 +177,46 @@ export class ResumenImputacionesPage {
     await this.page.waitForTimeout(800);
   }
 
+  /**
+   * Igual que `escribirEnAutocompletar`, pero también funciona con un `p-select` con filtro
+   * interno (hay que abrir el desplegable antes de poder escribir) y con un `input` simple sin
+   * sugerencias (p. ej. el filtro Código): en ese caso rellena el texto y devuelve `null` si no
+   * aparece ninguna lista de opciones, en vez de fallar.
+   */
+  async escribirEnFiltro(id: string, texto: string): Promise<Locator | null> {
+    const campo = this.page.locator(`#${id}`);
+    const etiqueta = await campo.evaluate((e) => e.tagName.toLowerCase());
+    if (etiqueta === 'p-select' || etiqueta === 'p-multiselect') {
+      // Prefijo propio del componente: evita que el overlay/opciones de OTRO p-select o p-multiselect
+      // de la misma pantalla (p. ej. el selector de Campos) se confundan con el que acabamos de abrir.
+      const prefijo = etiqueta === 'p-select' ? '.p-select' : '.p-multiselect';
+      await campo.locator(`${prefijo}-dropdown`).click();
+      const filtroTexto = this.page.locator(`${prefijo}-filter`);
+      if ((await filtroTexto.count()) > 0) await filtroTexto.fill(texto);
+      const opcion = this.page.locator(`${prefijo}-option`).filter({ hasText: texto }).first();
+      await opcion.waitFor({ state: 'visible', timeout: 15_000 });
+      return opcion;
+    }
+    await campo.click();
+    await campo.fill('');
+    await campo.pressSequentially(texto, { delay: 60 });
+    const opcion = this.page.locator('ul[role=listbox] li[role=option]').filter({ hasText: texto }).first();
+    const aparece = await opcion.waitFor({ state: 'visible', timeout: 4_000 }).then(() => true).catch(() => false);
+    return aparece ? opcion : null;
+  }
+
+  async seleccionarEnFiltro(id: string, texto: string): Promise<void> {
+    const opcion = await this.escribirEnFiltro(id, texto);
+    assert.ok(opcion, `El filtro "${id}" no ofrece ninguna opción para "${texto}"`);
+    await opcion.click();
+    await this.page.waitForTimeout(500);
+  }
+
   async valorCampo(id: string): Promise<string> {
-    return (await this.page.locator(`#${id}`).inputValue()).trim();
+    const campo = this.page.locator(`#${id}`);
+    const etiqueta = await campo.evaluate((e) => e.tagName.toLowerCase());
+    if (etiqueta === 'input') return (await campo.inputValue()).trim();
+    return (await campo.locator('.p-select-label, .p-multiselect-label').first().innerText()).trim();
   }
 
   // ---------- Selección de campos ----------
