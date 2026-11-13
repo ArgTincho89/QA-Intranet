@@ -18,7 +18,7 @@ import { clickThroughOrgTrustPromptIfPresent, isForbiddenPage } from './sync';
 
 // Presupuesto por paso (Cucumber) y espera por defecto de Playwright (debe caber dentro del primero).
 setDefaultTimeout(Number(process.env.CUCUMBER_STEP_TIMEOUT_MS ?? 90_000));
-const PLAYWRIGHT_DEFAULT_TIMEOUT_MS = 60_000;
+export const PLAYWRIGHT_DEFAULT_TIMEOUT_MS = 60_000;
 const VIEWPORT = { width: 1920, height: 1080 };
 
 let sharedContext: BrowserContext;

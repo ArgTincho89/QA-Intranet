@@ -2,6 +2,7 @@ import { When, Then } from '@cucumber/cucumber';
 import * as assert from 'assert';
 import { CustomWorld } from '../support/world';
 import { PageMonitor } from '../support/page-monitor';
+import { PLAYWRIGHT_DEFAULT_TIMEOUT_MS } from '../support/hooks';
 import { ModulesPage, moduleSpec } from '../pages/modules.page';
 
 /** En módulos externos (SAP, SharePoint) no podemos corregir sus errores: se reportan como WARNING y el paso no falla. */
@@ -20,6 +21,10 @@ When('hago clic en la tarjeta del módulo {string}', async function (this: Custo
   this.monitor = new PageMonitor(this.page).start();
   const popup = await new ModulesPage(this.page).openFromHome(moduleSpec(key));
   if (popup) {
+    // Una pestaña nueva (popup) no hereda el `setDefaultTimeout` de la pestaña compartida (Before,
+    // hooks.ts): sin esto se queda en los 30 s por defecto de Playwright, insuficientes para el
+    // redirect de login de algunos módulos externos (p. ej. SharePoint) bajo carga.
+    popup.setDefaultTimeout(PLAYWRIGHT_DEFAULT_TIMEOUT_MS);
     this.page = popup;
     this.monitor.stop();
     this.monitor = new PageMonitor(popup).start();
